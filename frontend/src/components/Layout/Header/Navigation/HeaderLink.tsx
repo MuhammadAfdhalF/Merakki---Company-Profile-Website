@@ -8,32 +8,21 @@ const HeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const path = usePathname();
 
-  // Normalize path untuk menghindari masalah trailing slash
+  // Normalize path
   const cleanPath = path.replace(/\/$/, "");
   const cleanHref = item.href.replace(/\/$/, "");
 
-  // Kondisi menu aktif:
-  // - Exact match
-  // - Atau jika submenu, halaman yang dimulai dengan href parent juga aktif
+  // Active state logic
   let isActive = false;
 
   if (cleanHref === "") {
-    // HOME → hanya aktif di root ("/")
     isActive = cleanPath === "";
   } else {
-    // MENU BIASA → exact match atau child match
     isActive = cleanPath === cleanHref || cleanPath.startsWith(cleanHref + "/");
   }
 
-  const handleMouseEnter = () => {
-    if (item.submenu) {
-      setSubmenuOpen(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setSubmenuOpen(false);
-  };
+  const handleMouseEnter = () => item.submenu && setSubmenuOpen(true);
+  const handleMouseLeave = () => setSubmenuOpen(false);
 
   return (
     <div
@@ -47,9 +36,14 @@ const HeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
       <Link
         href={item.href}
         className={`
-          px-3 py-2 text-base flex items-center font-normal rounded-md transition-all duration-300
-          ${isActive ? "bg-white/70 text-black" : "text-white dark:text-white"}
-          hover:bg-white/70 hover:text-black
+          px-5 py-2 text-base flex items-center font-normal transition-all duration-300
+          rounded-full select-none
+          ${
+            isActive
+              ? "bg-[#470000B3] text-white"
+              : "text-white dark:text-white"
+          }
+          hover:bg-[#470000B3] hover:text-white
         `}
       >
         {item.label}
@@ -58,8 +52,8 @@ const HeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
         {item.submenu && (
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="1.5em"
-            height="1.5em"
+            width="1.3em"
+            height="1.3em"
             viewBox="0 0 24 24"
             className="ml-1"
           >
@@ -77,7 +71,7 @@ const HeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
 
       {/* SUBMENU */}
       {submenuOpen && (
-        <div className="absolute py-2 top-8 left-0 mt-0.5 w-60 bg-white dark:bg-darkmode shadow-lg dark:shadow-darkmd rounded-lg z-50">
+        <div className="absolute py-2 top-10 left-0 mt-0.5 w-60 bg-white dark:bg-darkmode shadow-lg dark:shadow-darkmd rounded-2xl z-50">
           {item.submenu?.map((subItem, index) => {
             const isSubActive = cleanPath === subItem.href.replace(/\/$/, "");
 
@@ -89,8 +83,8 @@ const HeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
                   block px-4 py-2 rounded-md transition
                   ${
                     isSubActive
-                      ? "bg-white/70 text-black"
-                      : "text-black dark:text-white hover:bg-AliceBlue dark:hover:bg-darklight"
+                      ? "bg-[#470000B3] text-white"
+                      : "text-black dark:text-white hover:bg-[#470000B3] hover:text-white"
                   }
                 `}
               >

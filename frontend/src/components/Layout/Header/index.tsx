@@ -78,7 +78,7 @@ const Header: React.FC = () => {
   return (
     <>
       <header
-        className={`sticky h-24 top-0 py-1 z-50 w-full transition-all ${
+        className={`sticky h-19 top-0 py-1 z-50 w-full transition-all ${
           sticky
             ? "bg-black/70 shadow-lg" // saat scroll → hitam 70%
             : "bg-black/50" // saat belum scroll → hitam 50%
@@ -111,8 +111,9 @@ const Header: React.FC = () => {
     hidden lg:flex items-center justify-center
     p-2 rounded-full
     bg-transparent text-white
-    hover:bg-white/70 hover:text-black
     transition-all duration-300
+    hover:bg-[#470000B3] hover:text-white
+    active:bg-[#470000B3]
   "
                 aria-label="Open Sign In Modal"
               >
