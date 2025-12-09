@@ -25,6 +25,7 @@ const Footer: FC = () => {
       }`}
       style={{ backgroundImage: `url(${bgImagePath})` }}
     >
+
       <div className="bg-secondary md:pb-20 pb-8">
         <div className="container">
           <div className="flex items-center justify-between pb-16 border-b border-dark_border border-solid">

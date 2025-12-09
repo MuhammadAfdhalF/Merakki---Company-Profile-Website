@@ -28,9 +28,7 @@ const BuildAmazing = ({ isSpace }: { isSpace: boolean }) => {
   return (
     <section className="relative bg-[#400000] py-20">
       <div className="relative container mx-auto">
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-
           {/* LEFT TEXT */}
           <div
             data-aos="fade-right"
@@ -43,24 +41,23 @@ const BuildAmazing = ({ isSpace }: { isSpace: boolean }) => {
 
             <p className="text-white/80 text-[14px] leading-relaxed max-w-md">
               Meraki is a creative agency built from big ideas, positive energy,
-              and a real passion for making brands look and feel cooler.
-              With teams in Jakarta, Pekanbaru, and Dumai, we’re ready to
-              support clients from anywhere.
+              and a real passion for making brands look and feel cooler. With
+              teams in Jakarta, Pekanbaru, and Dumai, we’re ready to support
+              clients from anywhere.
             </p>
 
             <br />
 
             <p className="text-white/80 text-[14px] leading-relaxed max-w-md">
-              More than 50 businesses have trusted us with their visual
-              identity and design needs. We blend creativity with strategy,
-              so what we create isn’t just beautiful — it’s built to work,
-              grow, and strengthen your business.
+              More than 50 businesses have trusted us with their visual identity
+              and design needs. We blend creativity with strategy, so what we
+              create isn’t just beautiful — it’s built to work, grow, and
+              strengthen your business.
             </p>
           </div>
 
-          {/* RIGHT CARDS — now only 4 */}
+          {/* RIGHT CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-
             {whyChooseData.map((item, index) => (
               <div
                 key={index}
@@ -69,8 +66,13 @@ const BuildAmazing = ({ isSpace }: { isSpace: boolean }) => {
                 data-aos-duration="900"
               >
                 <div
-                  className="bg-[#5d0000] p-5 rounded-2xl shadow-md
-                             hover:bg-[#470000] transition-all duration-300 relative"
+                  className="
+                    bg-[#5a0000] p-5 rounded-2xl shadow-md relative
+                    transition-all duration-300 ease-out
+                    hover:bg-[#470000]
+                    hover:-translate-y-2 hover:scale-[1.02]
+                    hover:shadow-2xl
+                  "
                 >
                   {/* TITLE */}
                   <h6 className="text-white text-[15px] font-semibold leading-snug">
@@ -102,9 +104,7 @@ const BuildAmazing = ({ isSpace }: { isSpace: boolean }) => {
                 </div>
               </div>
             ))}
-
           </div>
-
         </div>
       </div>
     </section>

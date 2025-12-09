@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -58,20 +59,28 @@ const WorkGrow = () => {
           </div>
         </div>
 
-        {/* RIGHT IMAGE (AOS LIKE HERO) */}
+        {/* RIGHT IMAGE (hover timbul) */}
         <div
           className="flex justify-center md:justify-start md:ml-20"
           data-aos="fade-left"
           data-aos-delay="200"
           data-aos-duration="1000"
         >
-          <Image
-            src={getImgPath("/images/work-grow/logo_meraki.png")}
-            alt="Meraki Logo"
-            className="rounded-xl shadow-xl"
-            width={380}
-            height={200}
-          />
+          <div className="group inline-block cursor-pointer">
+            <Image
+              src={getImgPath("/images/work-grow/logo_meraki.png")}
+              alt="Meraki Logo"
+              className="
+                rounded-xl shadow-xl
+                transition-all duration-300 ease-out
+                group-hover:-translate-y-2 group-hover:scale-[1.03]
+                group-hover:shadow-2xl
+                group-hover:shadow-[0_20px_60px_rgba(132,3,3,0.45)]
+              "
+              width={380}
+              height={200}
+            />
+          </div>
         </div>
       </div>
     </section>
