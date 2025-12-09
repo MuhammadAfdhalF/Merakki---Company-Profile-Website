@@ -16,29 +16,28 @@ const Footer: FC = () => {
   const pathname = usePathname();
   console.log(pathname); // For debugging
 
-  const bgImagePath = getImgPath("/images/footer/ftr-bg.png");
+  const bgImagePath = getImgPath("/images/footer/melengkung_cuy.png");
 
   return (
     <footer
-      className={`relative dark:bg-darkmode bg-cover bg-no-repeat w-full h-full ${
+      className={`bg-[#161616] bg-cover bg-no-repeat w-full h-full ${
         pathname === "/" ? "pt-72 z-3" : "pt-32"
       }`}
       style={{ backgroundImage: `url(${bgImagePath})` }}
     >
-
-      <div className="bg-secondary md:pb-20 pb-8">
+      <div className="relative bg-[#400000]  md:pb-20 pb-8">
         <div className="container">
           <div className="flex items-center justify-between pb-16 border-b border-dark_border border-solid">
             <Link href="/">
               <Image
-                src={getImgPath("/images/footer/ftr-logo.svg")}
+                src={getImgPath("/images/logo/logo_navbar.png")}
                 alt="Company logo"
-                width={160}
-                height={50}
-                style={{ width: "auto", height: "auto" }}
+                width={150}
+                height={150}
                 quality={100}
               />
             </Link>
+
             <div>
               <ul className="flex items-center gap-5">
                 <li>
@@ -129,7 +128,7 @@ const Footer: FC = () => {
                     className="bg-contain w-5 h-5 inline-block"
                     style={{
                       backgroundImage: `url(${getImgPath(
-                        "/images/footer/msg-enter.svg"
+                        "/images/footer/msg-enter.svg",
                       )})`,
                     }}
                   ></i>

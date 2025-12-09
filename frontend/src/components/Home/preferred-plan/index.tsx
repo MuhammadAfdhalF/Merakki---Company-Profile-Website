@@ -108,12 +108,12 @@ const Preferred = () => {
           opacity: 0.25 !important;
         }
         .slick-dots li.slick-active button:before {
-          color: #000000 !important;
+          color: #ffffff !important;
           opacity: 1 !important;
         }
         .slick-dots li button:focus:before,
         .slick-dots li button:active:before {
-          color: #000000 !important;
+          color: #fffff !important;
           opacity: 1 !important;
         }
       `}</style>

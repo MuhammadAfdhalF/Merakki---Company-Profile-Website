@@ -84,10 +84,10 @@ const Portofolio = () => {
       <section
         className="py-20 relative overflow-hidden"
         style={{
-          background: "linear-gradient(180deg, #0D0D0D 0%, #170000 100%)",
+          background: "linear-gradient(180deg, #161616 0%, #170000 100%)",
         }}
       >
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-[#161616]/40"></div>
 
         <div className="container relative z-10">
           <div className="grid md:grid-cols-2 grid-cols-1 gap-10">
@@ -134,7 +134,7 @@ const Portofolio = () => {
                     className="group-hover:scale-[1.04] transition-all duration-500 ease-out"
                   />
 
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-[#161616]/30 group-hover:bg-[#161616]/50 transition-all duration-300"></div>
 
                   <div className="absolute top-6 left-6">
                     <span className="text-white font-bold text-[22px] drop-shadow-lg">
@@ -178,7 +178,7 @@ const Portofolio = () => {
       {/* MODAL */}
       {modalImg && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[999] flex items-center justify-center p-6"
+          className="fixed inset-0 bg-[#161616]/70 backdrop-blur-sm z-[999] flex items-center justify-center p-6"
           onClick={() => setModalImg(null)}
         >
           <div className="relative max-w-3xl w-full">
