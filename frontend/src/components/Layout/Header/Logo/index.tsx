@@ -7,7 +7,7 @@ const Logo: React.FC = () => {
   return (
     <Link href="/" className='sm:max-w-56 max-w-44'>
       <Image
-        src={getImgPath("/images/logo/logo-dark.svg")}
+        src={getImgPath("/images/logo/logo-web.png")}
         alt="logo"
         width={160}
         height={50}
@@ -16,7 +16,7 @@ const Logo: React.FC = () => {
         className='dark:hidden'
       />
       <Image
-        src={getImgPath("/images/logo/logo.svg")}
+        src={getImgPath("/images/logo/logo-web.png")}
         alt="logo"
         width={160}
         height={50}

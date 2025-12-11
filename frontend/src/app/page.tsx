@@ -8,12 +8,14 @@ import WorkGrow from "@/components/Home/work-grow";
 import AddOns from "@/components/Home/add-ons";
 import Portofolio from "@/components/Home/porfolio";
 
-
 import Preferred from "@/components/Home/preferred-plan";
 import Counter from "@/components/Home/Counter";
 import FaqQuestion from "@/components/Home/faq";
 export const metadata: Metadata = {
-  title: "Sustainable",
+  title: "Meraki.",
+  icons: {
+    icon: "/images/logo/logo-web.png",
+  },
 };
 
 export default function Home() {
@@ -29,7 +31,7 @@ export default function Home() {
         <Portofolio />
 
         <Preferred />
-        <Counter />
+        {/* <Counter /> */}
         <FaqQuestion />
       </div>
     </main>

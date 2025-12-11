@@ -38,7 +38,7 @@ export default function ScrollToTop() {
     >
       <div 
         className="before:content-[''] before:absolute before:w-8 before:h-8 before:bg-no-repeat before:bg-cover"
-        style={{ '--top-arrow-bg': `url(${getImgPath('/images/footer/top-arrow.svg')})` } as React.CSSProperties & { '--top-arrow-bg': string }}
+        style={{ '--top-arrow-bg': `url(${getImgPath('/images/footer/top-arrow.png')})` } as React.CSSProperties & { '--top-arrow-bg': string }}
       ></div>
     </div>
   );

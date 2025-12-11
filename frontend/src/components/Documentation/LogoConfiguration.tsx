@@ -9,7 +9,7 @@ export const LogoConfiguration = () => {
                     <div className="text-sm text-BorderLine">
                     <p>&#x3C;Link href=&#x22;/&#x22;&#x3E;</p>
   <p className="ms-2">&#x3C;Image</p>
-    <p className="ms-3">src=&#x22;/images/logo/logo.svg&#x22;</p>
+    <p className="ms-3">src=&#x22;/images/logo/logo-web.png&#x22;</p>
     <p className="ms-3">alt=&#x22;logo&#x22;</p>
     <p className="ms-3">width={160}</p>
     <p className="ms-3">height={50}</p>
