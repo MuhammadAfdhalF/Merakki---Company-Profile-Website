@@ -1,11 +1,14 @@
 import ContactForm from "@/components/Contact/Form";
 import ContactInfo from "@/components/Contact/ContactInfo";
 import Location from "@/components/Contact/OfficeLocation";
+import Clients from "@/components/Home/clients";
+import Faq from "@/components/Home/Faq";
+
 import React from "react";
 import HeroSub from "@/components/SharedComponent/HeroSub";
 import { Metadata } from "next";
 export const metadata: Metadata = {
-    title: "Contact | Sustainable",
+  title: "Contact | Sustainable",
 };
 
 const page = () => {
@@ -18,11 +21,9 @@ const page = () => {
       <HeroSub
         title="Contact Us"
         description=""
-
       />
-      <ContactInfo />
-      <ContactForm />
-      <Location />
+      <Clients />
+      <Faq />
     </>
   );
 };

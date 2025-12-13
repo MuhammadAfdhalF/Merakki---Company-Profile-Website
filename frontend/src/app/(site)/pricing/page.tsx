@@ -1,4 +1,4 @@
-import Preferred from '@/components/Home/preferred-plan'
+import Preferred from '@/components/Home/clients'
 import HeroSub from '@/components/SharedComponent/HeroSub'
 import React from 'react'
 import { Metadata } from "next";

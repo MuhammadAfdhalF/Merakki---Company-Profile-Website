@@ -1,4 +1,4 @@
-import FaqQuestion from "@/components/Home/faq";
+import FaqQuestion from "@/components/Home/Faq";
 import HeroSub from "@/components/SharedComponent/HeroSub";
 import React from "react";
 import { Metadata } from "next";

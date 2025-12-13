@@ -1,4 +1,7 @@
 import Footer from "@/components/Layout/Footer";
+import FooterX from "@/components/Layout/Footer-Tab";
+import FooterXGate from "@/components/Layout/FooterXGate";
+
 import Header from "@/components/Layout/Header";
 import SessionProviderComp from "@/components/nextauth/SessionProvider";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -36,9 +39,9 @@ export default function RootLayout({
             >
               <Aoscompo>
                 <Header />
-                <NextTopLoader color="#f9c78f" />
+                <NextTopLoader color="#400000" />
                 {children}
-                <Footer />
+                <FooterXGate />
               </Aoscompo>
               <ScrollToTop />
             </ThemeProvider>

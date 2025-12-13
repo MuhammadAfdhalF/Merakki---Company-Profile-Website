@@ -1,16 +1,17 @@
 import React from "react";
 import { Metadata } from "next";
-import HeroSlider from "@/components/Home/HeroSlider";
+import HeroSlider from "@/components/Home/HomeStart";
+import Footer from "@/components/Layout/Footer";
 
 import Hero from "@/components/Home/Hero";
-import BuildAmazing from "@/components/Home/Build-Amazing";
-import WorkGrow from "@/components/Home/work-grow";
+import BuildAmazing from "@/components/Home/Branding";
+import WorkGrow from "@/components/Home/WhoIs";
 import AddOns from "@/components/Home/add-ons";
-import Portofolio from "@/components/Home/porfolio";
+import Portofolio from "@/components/Home/Portofolio";
 
-import Preferred from "@/components/Home/preferred-plan";
+import Preferred from "@/components/Home/clients";
 import Counter from "@/components/Home/Counter";
-import FaqQuestion from "@/components/Home/faq";
+import FaqQuestion from "@/components/Home/Faq";
 export const metadata: Metadata = {
   title: "Meraki.",
   icons: {
@@ -33,6 +34,8 @@ export default function Home() {
         <Preferred />
         {/* <Counter /> */}
         <FaqQuestion />
+        <Footer />
+
       </div>
     </main>
   );

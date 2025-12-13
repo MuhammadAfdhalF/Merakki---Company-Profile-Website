@@ -11,14 +11,14 @@ export const headerData: HeaderItem[] = [
       { label: "Portfolio details", href: "/portfolio/portfolio-1" },
     ],
   },
-  {
-    label: "Blog",
-    href: "#",
-    submenu: [
-      { label: "Blog list", href: "/blog" },
-      { label: "Blog details", href: "/blog/blog_1" },
-    ],
-  },
-  { label: "Contact", href: "/contact" },
-  { label: "Docs", href: "/documentation" },
+  // {
+  //   label: "Blog",
+  //   href: "#",
+  //   submenu: [
+  //     { label: "Blog list", href: "/blog" },
+  //     { label: "Blog details", href: "/blog/blog_1" },
+  //   ],
+  // },
+  { label: "Clients", href: "/clients" },
+  // { label: "Docs", href: "/documentation" },
 ];
