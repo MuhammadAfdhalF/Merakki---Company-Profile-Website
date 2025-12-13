@@ -1,6 +1,7 @@
 import Footer from "@/components/Layout/Footer";
 import FooterX from "@/components/Layout/Footer-Tab";
 import FooterXGate from "@/components/Layout/FooterXGate";
+import FloatingContact from "@/components/FloatingContact";
 
 import Header from "@/components/Layout/Header";
 import SessionProviderComp from "@/components/nextauth/SessionProvider";
@@ -40,6 +41,8 @@ export default function RootLayout({
               <Aoscompo>
                 <Header />
                 <NextTopLoader color="#400000" />
+                <FloatingContact />
+
                 {children}
                 <FooterXGate />
               </Aoscompo>

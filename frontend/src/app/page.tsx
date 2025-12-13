@@ -8,6 +8,7 @@ import BuildAmazing from "@/components/Home/Branding";
 import WorkGrow from "@/components/Home/WhoIs";
 import AddOns from "@/components/Home/add-ons";
 import Portofolio from "@/components/Home/Portofolio";
+import Contact from "@/components/Home/Contact";
 
 import Preferred from "@/components/Home/clients";
 import Counter from "@/components/Home/Counter";
@@ -33,6 +34,8 @@ export default function Home() {
 
         <Preferred />
         {/* <Counter /> */}
+        <Contact />
+
         <FaqQuestion />
         <Footer />
 

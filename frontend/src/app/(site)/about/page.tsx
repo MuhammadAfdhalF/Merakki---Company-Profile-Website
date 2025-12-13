@@ -13,12 +13,11 @@ const page = () => {
     <>
         <HeroSub
             title="About Us"
-            description=""
-            curveFill="#0a0909" 
+            description="Get to know us better"
         />
         {/* <Counter/> */}
         <WorkGrow/>
-        <BuildAmazing isSpace={false} />
+        {/* <BuildAmazing isSpace={false} /> */}
     </>
   )
 }

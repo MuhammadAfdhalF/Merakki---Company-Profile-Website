@@ -1,7 +1,5 @@
-import ContactForm from "@/components/Contact/Form";
-import ContactInfo from "@/components/Contact/ContactInfo";
-import Location from "@/components/Contact/OfficeLocation";
-import Clients from "@/components/Home/clients";
+
+import Contact from "@/components/Home/Contact";
 
 import Faq from "@/components/Home/Faq";
 
@@ -21,9 +19,10 @@ const page = () => {
     <>
       <HeroSub
         title="Contact & Faq"
-        description=""
+        description="Reach out to us and find quick answers to your questions.
+"
       />
-      <Clients />
+      <Contact />
       <Faq />
     </>
   );

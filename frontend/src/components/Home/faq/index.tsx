@@ -11,7 +11,12 @@ const FaqQuestion = () => {
   };
 
   return (
-    <section className="bg-[#161616] pt-15 pb-10">
+    <section
+      className="pt-15 pb-10"
+      style={{
+        background: "linear-gradient(180deg, #170000 0%, #170000 100%)",
+      }}
+    >
       <div className="container">
         <div className="flex flex-col gap-y-8">
           <h2 className="text-white text-center">

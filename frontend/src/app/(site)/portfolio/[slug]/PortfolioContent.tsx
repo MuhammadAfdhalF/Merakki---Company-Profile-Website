@@ -14,7 +14,8 @@ export default function PortfolioContent({ slug }: PortfolioContentProps) {
 
   return (
     <>
-      <HeroSub title="Portfolio Details" description="" />
+      <HeroSub title="Portfolio Details" description="A closer look at the ideas, process, and visual direction behind this project.
+" />
       <div className="dark:bg-darkmode -mt-52 pt-72">
         <div className="container">
           <div className="md:pb-20 pb-10">
