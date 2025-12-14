@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 const WHATSAPP_LINK = "https://wa.me/6288271962472";
 const INSTAGRAM_LINK =
@@ -13,63 +14,61 @@ export default function FloatingContact() {
         fixed left-3 bottom-5
         md:left-4 md:bottom-6
         z-[9999]
-        flex flex-col items-center
-        gap-3 md:gap-4
-
+        flex items-center
+        gap-3
         animate-fade-in-up
       "
         >
-            {/* WhatsApp */}
-            <a
+            {/* CONTACT BUTTON */}
+            <Link
                 href={WHATSAPP_LINK}
                 target="_blank"
-                rel="noopener noreferrer"
                 className="
-          transition-transform duration-200 ease-out
-          hover:scale-110
-          active:scale-95
-        "
+    hidden md:flex
+    bg-white text-black
+    rounded-full
+    px-6 py-3
+    text-sm font-semibold
+    shadow-lg
+    transition-all duration-200
+    hover:scale-105
+    active:scale-95
+  "
             >
-                <Image
-                    src="/images/footer/icon-wa.png"
-                    alt="WhatsApp"
-                    width={44}
-                    height={44}
-                    sizes="(max-width: 768px) 36px, (max-width: 1024px) 40px, 44px"
-                    className="
-            object-contain
-            w-9 h-9
-            md:w-10 md:h-10
-            lg:w-11 lg:h-11
-          "
-                />
-            </a>
+                Contact Us
+            </Link>
 
-            {/* Instagram */}
-            <a
-                href={INSTAGRAM_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-          transition-transform duration-200 ease-out
-          hover:scale-110
-          active:scale-95
-        "
-            >
-                <Image
-                    src="/images/footer/icon-instagram.png"
-                    alt="Instagram"
-                    width={44}
-                    height={44}
-                    sizes="(max-width: 768px) 36px, (max-width: 1024px) 40px, 44px"
-                    className="
-            object-contain
-            w-9 h-9
-            md:w-10 md:h-10
-            lg:w-11 lg:h-11
-          "
-                />
-            </a>
+
+            {/* ICONS */}
+            <div className="flex flex-col gap-3">
+                <Link
+                    href={WHATSAPP_LINK}
+                    target="_blank"
+                    className="transition-transform hover:scale-110 active:scale-95"
+                >
+                    <Image
+                        src="/images/footer/icon-wa.png"
+                        alt="WhatsApp"
+                        width={36}
+                        height={36}
+                        className="w-9 h-9 object-contain"
+                    />
+                </Link>
+
+                <Link
+                    href={INSTAGRAM_LINK}
+                    target="_blank"
+                    className="transition-transform hover:scale-110 active:scale-95"
+                >
+                    <Image
+                        src="/images/footer/icon-instagram.png"
+                        alt="Instagram"
+                        width={36}
+                        height={36}
+                        className="w-9 h-9 object-contain"
+                    />
+                </Link>
+            </div>
         </div>
     );
 }

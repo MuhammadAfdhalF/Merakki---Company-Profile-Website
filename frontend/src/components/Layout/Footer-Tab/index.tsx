@@ -20,6 +20,7 @@ const Footer: FC = () => {
     "/": "#170000",        // Home
     "/about/": "#0f0101",   // About Us
     "/portfolio/": "#120909",
+    "/portfolio/portfolio-1/": "#170000",
     "/contact/": "#0f0101",
   };
 
@@ -39,7 +40,7 @@ const Footer: FC = () => {
         <div className="container py-1 space-y-14">
 
           {/* ================= ROW 1 ================= */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mt-10">
 
             {/* MERAKI */}
             <div className="space-y-4">

@@ -1,120 +1,159 @@
 "use client";
-import { signIn, useSession } from "next-auth/react";
+
+import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
-import SocialSignIn from "../SocialSignIn";
-import Logo from "@/components/Layout/Header/Logo"
-import Loader from "@/components/Common/Loader";
-import toast, { Toaster } from 'react-hot-toast';
+import { useContext, useState } from "react";
+import Image from "next/image";
 import AuthDialogContext from "@/app/context/AuthDialogContext";
 
+const Signin = ({ signInOpen }: { signInOpen?: any }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-const Signin = ({signInOpen}:{signInOpen?:any}) => {
-  const { data: session } = useSession();
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin123");
-  const [error, setError] = useState("");
   const authDialog = useContext(AuthDialogContext);
 
-
   const handleSubmit = async (e: any) => {
-    const notify = () => toast('Here is your toast.');
     e.preventDefault();
+
     const result = await signIn("credentials", {
       redirect: false,
       username,
       password,
     });
-    console.log(result);
-    if (result?.error) {
-      // Handle successful sign-in
-      setError(result.error);
-    }
-    if(result?.status === 200){
-       setTimeout(() => {
-        signInOpen(false);
-       }, 1200);
+
+    if (result?.status === 200) {
+      signInOpen?.(false);
       authDialog?.setIsSuccessDialogOpen(true);
-      setTimeout(() => {
-        authDialog?.setIsSuccessDialogOpen(false);
-      }, 1100);
-    }else{
+      setTimeout(() => authDialog?.setIsSuccessDialogOpen(false), 1200);
+    } else {
       authDialog?.setIsFailedDialogOpen(true);
-      setTimeout(() => {
-        authDialog?.setIsFailedDialogOpen(false);
-      }, 1100);
+      setTimeout(() => authDialog?.setIsFailedDialogOpen(false), 1200);
     }
   };
 
-
-  
-
-
-
-
   return (
-    <>
-      <div className="mb-10 text-center mx-auto inline-block max-w-[160px]">
-        <Logo />
-      </div>
+    <section
+      className="
+        w-full
+        h-[640px]
+        flex items-center justify-center
+        px-8
+        rounded-2xl
+      "
+      style={{
+        background: "linear-gradient(180deg, #400000 0%, #0D0D0D 100%)",
+      }}
+    >
+      <div className="w-full text-center text-white">
+        {/* BRAND */}
+        <h2 className="text-2xl font-semibold mb-10">Meraki.</h2>
 
-      <SocialSignIn />
+        {/* TITLE */}
+        <h1 className="text-5xl font-bold mb-3">Sign in</h1>
+        <p className="text-sm text-white/70 mb-6">Meraki. Admin Only</p>
 
-      <span className="z-1 relative my-8 block text-center">
-        <span className="-z-1 absolute left-0 top-1/2 block h-px w-full bg-BorderLine dark:bg-dark_border"></span>
-        <span className="text-body-secondary relative z-10 inline-block bg-white px-3 text-base dark:bg-secondary">
-          OR
-        </span>
-        <Toaster />
-      </span>
+        {/* DIVIDER */}
+        <div className="w-20 h-px bg-white/30 mx-auto mb-10" />
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-[22px]">
-          <input
-            type="text"
-            placeholder="Username"
-            required
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded-md border placeholder:text-gray-400  border-BorderLine dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition  focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
-          />
-        </div>
-        <div className="mb-[22px]">
-          <input
-            type="password"
-            required
-            value={password}
-            placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-BorderLine dark:border-dark_border border-solid bg-transparent px-5 py-3 text-base text-dark outline-hidden transition  focus:border-primary focus-visible:shadow-none dark:border-border_color dark:text-white dark:focus:border-primary"
-          />
-        </div>
-        <div className="mb-9">
+        {/* FORM */}
+        <form onSubmit={handleSubmit}>
+          {/* EMAIL */}
+          <div className="flex items-center gap-4 mb-5">
+            <Image
+              src="/images/footer/icon-gmail.png"
+              alt="Email"
+              width={22}
+              height={22}
+            />
+            <input
+              type="text"
+              placeholder="Enter your Email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className="
+                flex-1 rounded-full bg-white text-black
+                px-6 py-4 text-sm
+                outline-none ring-0 focus:ring-0 focus:outline-none
+                placeholder:text-gray-500
+              "
+            />
+          </div>
+
+          {/* PASSWORD */}
+          <div className="flex items-center gap-4 mb-6">
+            <Image
+              src="/images/footer/password.png"
+              alt="Password"
+              width={22}
+              height={22}
+            />
+
+            <div className="relative flex-1">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="
+                  w-full rounded-full bg-white text-black
+                  px-6 py-4 pr-12 text-sm
+                  outline-none ring-0 focus:ring-0 focus:outline-none
+                  placeholder:text-gray-500
+                "
+              />
+
+              {/* ICON MATA (POSISI DIRAPIKAN) */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="
+                  absolute
+                  right-5
+                  mt-1
+                  top-1/2
+                  -translate-y-1/2
+                  flex
+                  items-center
+                  justify-center
+                  w-6
+                  h-6
+                  text-gray-500
+                  hover:text-black
+                  transition
+                "
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
+          </div>
+
+          {/* FORGOT */}
+          <p className="text-xs text-white/60 text-center mb-8">
+            Forget password?{" "}
+            <Link href="/" className="underline hover:text-white">
+              klik here
+            </Link>
+          </p>
+
+          {/* BUTTON */}
           <button
             type="submit"
-            className="flex w-full cursor-pointer items-center justify-center rounded-md border border-primary bg-primary hover:bg-darkprimary dark:hover:bg-darkprimary! px-5 py-3 text-base text-white transition duration-300 ease-in-out "
+            className="
+              w-full rounded-full
+              bg-[#7a0000] hover:bg-[#5a0000]
+              py-5 font-semibold text-white
+              transition
+            "
           >
-            Sign In
-            {/* {loading && <Loader />} */}
+            Login
           </button>
-      
-        </div>
-      </form>
-
-      <Link
-        href="/"
-        className="mb-2 inline-block text-base text-dark hover:text-primary dark:text-white dark:hover:text-primary"
-      >
-        Forget Password?
-      </Link>
-      <p className="text-body-secondary text-base">
-        Not a member yet?{" "}
-        <Link href="/" className="text-primary hover:underline">
-          Sign Up
-        </Link>
-      </p>
-    </>
+        </form>
+      </div>
+    </section>
   );
 };
 

@@ -8,39 +8,45 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 
 const Portofolio = () => {
-  const [modalImg, setModalImg] = useState<string | null>(null);
+  const [modalItem, setModalItem] = useState<any>(null);
   const [animating, setAnimating] = useState(false);
 
   const portfolioData = [
     {
+      type: "image",
       src: "/images/portofolio/porto-1.png",
       title: "Brand Identity Project",
       alt: "Portfolio 1",
     },
     {
+      type: "video",
+      src: "/images/portofolio/vidio-porto.mp4",
+      title: "Brand Campaign Video",
+      alt: "Portfolio Video 1",
+    },
+    {
+      type: "image",
       src: "/images/portofolio/porto-2.png",
       title: "Creative Content Design",
       alt: "Portfolio 2",
     },
     {
+      type: "video",
+      src: "/images/portofolio/vidio-porto.mp4",
+      title: "Reels Marketing Video",
+      alt: "Portfolio Video 2",
+    },
+    {
+      type: "image",
       src: "/images/portofolio/porto-3.png",
       title: "Digital Marketing Visuals",
       alt: "Portfolio 3",
     },
     {
+      type: "image",
       src: "/images/portofolio/porto-1.png",
       title: "Brand Identity Project 2",
       alt: "Portfolio 4",
-    },
-    {
-      src: "/images/portofolio/porto-2.png",
-      title: "Creative Content Design 2",
-      alt: "Portfolio 5",
-    },
-    {
-      src: "/images/portofolio/porto-3.png",
-      title: "Digital Marketing Visuals 2",
-      alt: "Portfolio 6",
     },
   ];
 
@@ -75,7 +81,6 @@ const Portofolio = () => {
     const timer = setInterval(() => {
       handlePageChange((page + 1) % totalPages);
     }, 8000);
-
     return () => clearInterval(timer);
   }, [page, totalPages]);
 
@@ -91,16 +96,16 @@ const Portofolio = () => {
 
         <div className="container relative z-10">
           <div className="grid md:grid-cols-2 grid-cols-1 gap-10">
+
             {/* LEFT TEXT */}
             <div data-aos="fade-up">
-              <h2 className="text-white max-w-446">OUR PORTOFOLIO</h2>
+              <h2 className="text-white max-w-446">OUR PORTFOLIO</h2>
               <p className="text-gray-300 text-base font-normal py-9 max-w-408">
                 Take a look at some of the brands we’ve helped grow through
                 strategic design and creative execution.
               </p>
               <p className="text-gray-300 text-base font-normal py-9 max-w-408">
-                <span className="font-bold">Click Our Images/PDF</span> For
-                details
+                <span className="font-bold">Click our visuals</span> for details
               </p>
             </div>
 
@@ -110,48 +115,60 @@ const Portofolio = () => {
                 key={`${page}-${item.src}-${index}`}
                 data-aos="fade-up"
                 data-aos-delay={`${(index + 1) * 160}`}
-                data-aos-duration="900"
-                style={
-                  !animating ? { animationDelay: `${index * 180}ms` } : undefined
-                }
-                className={`transition-all duration-500 ease-out ${
-                  animating
-                    ? "opacity-0 translate-y-2"
-                    : "opacity-100 translate-y-0 portfolio-enter"
-                } ${index === 1 ? "xl:-mt-44 -mt-0 relative" : ""}`}
+                className={`transition-all duration-500 ease-out ${animating ? "opacity-0 translate-y-2" : "opacity-100"
+                  } ${index === 1 ? "xl:-mt-44 relative" : ""}`}
               >
                 <div
-                  className="relative rounded-14 overflow-hidden shadow-xl cursor-pointer group transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[0_20px_60px_rgba(132,3,3,0.45)]"
-                  onClick={() => setModalImg(getImgPath(item.src))}
+                  className="
+                    relative rounded-14 overflow-hidden shadow-xl cursor-pointer
+                    group transition-all duration-300 ease-out
+                    hover:-translate-y-2 hover:scale-[1.02]
+                    hover:shadow-2xl hover:shadow-[0_20px_60px_rgba(132,3,3,0.45)]
+                  "
+                  onClick={() => setModalItem(item)}
                 >
-                  <Image
-                    src={getImgPath(item.src)}
-                    alt={item.alt}
-                    width={0}
-                    height={0}
-                    layout="responsive"
-                    sizes="100vh"
-                    className="group-hover:scale-[1.04] transition-all duration-500 ease-out"
-                  />
+                  {/* IMAGE / VIDEO */}
+                  {item.type === "image" ? (
+                    <Image
+                      src={getImgPath(item.src)}
+                      alt={item.alt}
+                      width={0}
+                      height={0}
+                      layout="responsive"
+                      sizes="100vh"
+                      className="group-hover:scale-[1.04] transition-all duration-500 ease-out"
+                    />
+                  ) : (
+                    <video
+                      src={getImgPath(item.src)}
+                      muted
+                      loop
+                      playsInline
+                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-all duration-500 ease-out"
+                    />
+                  )}
 
+                  {/* OVERLAY */}
                   <div className="absolute inset-0 bg-[#161616]/30 group-hover:bg-[#161616]/50 transition-all duration-300"></div>
 
+                  {/* TITLE */}
                   <div className="absolute top-6 left-6">
                     <span className="text-white font-bold text-[22px] drop-shadow-lg">
                       {item.title}
                     </span>
                   </div>
 
+                  {/* EYE ICON */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-white/10 backdrop-blur-md p-4 rounded-full">
+                    <div className="bg-[#f1e6d8]/90 p-4 rounded-full shadow-md">
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="black"
+                        fill="currentColor"
                         viewBox="0 0 24 24"
-                        width="36"
-                        height="36"
+                        width="32"
+                        height="32"
+                        className="text-[#1a1a1a]"
                       >
-                        <path d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5zm0-8c-1.654 0-3 1.346-3 3s1.346 3 3 3 3-1.346 3-3-1.346-3-3-3z" />
+                        <path d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5z" />
                       </svg>
                     </div>
                   </div>
@@ -166,58 +183,57 @@ const Portofolio = () => {
               <button
                 key={i}
                 onClick={() => handlePageChange(i)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  i === page ? "bg-red-900" : "bg-gray-500"
-                }`}
+                className={`w-3 h-3 rounded-full transition-all ${i === page ? "bg-red-900" : "bg-gray-500"
+                  }`}
               />
             ))}
+          </div>
+
+          {/* CTA */}
+          <div className="text-center mt-16">
+            <Link
+              href="/portfolio/portfolio-1/"
+              className="text-white underline underline-offset-4 hover:opacity-80 transition"
+            >
+              Click to view portfolio details →
+            </Link>
           </div>
         </div>
       </section>
 
       {/* MODAL */}
-      {modalImg && (
+      {modalItem && (
         <div
           className="fixed inset-0 bg-[#161616]/70 backdrop-blur-sm z-[999] flex items-center justify-center p-6"
-          onClick={() => setModalImg(null)}
+          onClick={() => setModalItem(null)}
         >
           <div className="relative max-w-3xl w-full">
             <button
               className="absolute -top-10 right-0 text-white text-3xl"
-              onClick={() => setModalImg(null)}
+              onClick={() => setModalItem(null)}
             >
               ✕
             </button>
 
-            <Image
-              src={modalImg}
-              alt="Preview Modal"
-              width={1200}
-              height={800}
-              className="rounded-xl shadow-2xl"
-            />
+            {modalItem.type === "image" ? (
+              <Image
+                src={getImgPath(modalItem.src)}
+                alt="Preview"
+                width={1200}
+                height={800}
+                className="rounded-xl shadow-2xl"
+              />
+            ) : (
+              <video
+                src={getImgPath(modalItem.src)}
+                controls
+                autoPlay
+                className="w-full rounded-xl shadow-2xl"
+              />
+            )}
           </div>
         </div>
       )}
-
-      {/* STAGGER ENTER ANIMATION */}
-      <style jsx>{`
-        .portfolio-enter {
-          opacity: 0;
-          transform: translateY(14px) scale(0.98);
-          animation: portfolioEnter 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-        @keyframes portfolioEnter {
-          from {
-            opacity: 0;
-            transform: translateY(14px) scale(0.98);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-      `}</style>
     </>
   );
 };

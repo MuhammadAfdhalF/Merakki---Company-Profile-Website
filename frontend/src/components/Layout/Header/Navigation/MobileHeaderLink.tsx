@@ -1,38 +1,95 @@
-import { useState } from 'react';
-import Link from 'next/link';
-import { HeaderItem } from '../../../../types/menu';
-import { usePathname } from 'next/navigation';
+"use client";
 
-const MobileHeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
+import { useState } from "react";
+import Link from "next/link";
+import { HeaderItem } from "../../../../types/menu";
+import { usePathname } from "next/navigation";
+
+const MobileHeaderLink: React.FC<{
+  item: HeaderItem;
+  onClick?: () => void;
+}> = ({ item, onClick }) => {
   const [submenuOpen, setSubmenuOpen] = useState(false);
-
-  const handleToggle = () => {
-    setSubmenuOpen(!submenuOpen);
-  };
-
   const path = usePathname();
+
+  const isActive =
+    path === item.href ||
+    path.startsWith(item.href + "/");
 
   return (
     <div className="relative w-full">
+      {/* MAIN LINK */}
       <Link
-      href={item.href}
-        onClick={item.submenu ? handleToggle : undefined}
-        className={`flex items-center justify-between w-full py-2 px-3 rounded-md text-black dark:text-white focus:outline-hidden ${path == item.href ? 'bg-primary text-white! dark:bg-primary dark:text-white' : null} ${path.startsWith(`/${item.label.toLowerCase()}`) ? "bg-primary text-white! dark:bg-primary dark:text-white" : null}`}
+        href={item.href}
+        onClick={() => {
+          if (item.submenu) {
+            setSubmenuOpen(!submenuOpen);
+          } else {
+            onClick?.(); // 👈 INI YANG MENUTUP SIDEBAR
+          }
+        }}
+        className={`
+    flex items-center justify-between w-full
+    px-4 py-3 rounded-lg
+    text-white transition-all duration-300
+    ${isActive ? "bg-[#470000B3]" : "hover:bg-[#470000B3]"}
+  `}
       >
-        {item.label}
+
+        <span>{item.label}</span>
+
         {item.submenu && (
-          <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24">
-            <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="m7 10l5 5l5-5" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="1.3em"
+            height="1.3em"
+            viewBox="0 0 24 24"
+            className={`transition-transform ${submenuOpen ? "rotate-180" : ""
+              }`}
+          >
+            <path
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+              d="m7 10l5 5l5-5"
+            />
           </svg>
         )}
       </Link>
+
+      {/* SUBMENU */}
       {submenuOpen && item.submenu && (
-        <div className="bg-white dark:bg-darkmode p-2 w-full">
-          {item.submenu.map((subItem, index) => (
-            <Link key={index} href={subItem.href} className={`block py-2 px-3 text-gray-500 hover:bg-gray-200 ${path === subItem.href ? 'text-primary!' : null}`}>
-              {subItem.label}
-            </Link>
-          ))}
+        <div className="mt-2 ml-2 flex flex-col gap-1">
+          {item.submenu.map((subItem, index) => {
+            const cleanPath = path.replace(/\/$/, "");
+            const cleanSubHref = subItem.href.replace(/\/$/, "");
+
+            const isSubActive =
+              cleanPath === cleanSubHref ||
+              (cleanSubHref !== item.href &&
+                cleanPath.startsWith(cleanSubHref + "/"));
+
+            return (
+              <Link
+                key={index}
+                href={subItem.href}
+                onClick={onClick}
+
+                className={`
+                  px-4 py-2 rounded-lg text-sm
+                  text-white transition-all duration-300
+                  ${isSubActive
+                    ? "bg-[#470000B3]"
+                    : "hover:bg-[#470000B3]"
+                  }
+                `}
+              >
+                {subItem.label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
