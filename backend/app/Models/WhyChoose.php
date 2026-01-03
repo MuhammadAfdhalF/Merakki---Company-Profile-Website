@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class WhyChoose extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'description',
+        'order',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 }

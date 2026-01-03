@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\Public\PublicHomeController;
 use App\Http\Controllers\Api\Public\PublicPortfolioController;
 
 // AUTH (public)
-Route::post('/auth/login', [Auth::class, 'login']);
+Route::post('/auth/login', [AuthController::class, 'login']);
 
 // AUTH + ADMIN (protected)
 Route::middleware('auth:sanctum')->group(function () {
