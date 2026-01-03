@@ -13,41 +13,68 @@ class PortfolioController extends Controller
      * GET /api/portfolios
      * Admin list portfolios (optionally can be extended with filters later)
      */
+    // public function index(Request $request)
+    // {
+    //     $query = Portfolio::query();
+
+    //     // Optional filters (safe + useful for admin dashboard)
+    //     if ($request->filled('category')) {
+    //         $query->where('category', $request->input('category'));
+    //     }
+
+    //     if ($request->filled('is_active')) {
+    //         $isActive = filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    //         if (!is_null($isActive)) {
+    //             $query->where('is_active', $isActive);
+    //         }
+    //     }
+
+    //     if ($request->filled('is_featured')) {
+    //         $isFeatured = filter_var($request->input('is_featured'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    //         if (!is_null($isFeatured)) {
+    //             $query->where('is_featured', $isFeatured);
+    //         }
+    //     }
+
+    //     if ($request->filled('q')) {
+    //         $q = $request->input('q');
+    //         $query->where(function ($sub) use ($q) {
+    //             $sub->where('title', 'like', "%{$q}%")
+    //                 ->orWhere('slug', 'like', "%{$q}%");
+    //         });
+    //     }
+
+    //     $portfolios = $query->orderBy('order')->orderBy('id', 'desc')->get();
+
+    //     return response()->json([
+    //         'data' => $portfolios,
+    //     ]);
+    // }
+
     public function index(Request $request)
     {
-        $query = Portfolio::query();
+        $query = \App\Models\Portfolio::query();
 
-        // Optional filters (safe + useful for admin dashboard)
-        if ($request->filled('category')) {
-            $query->where('category', $request->input('category'));
+        // optional: category filter
+        $category = $request->query('category');
+        if ($category && $category !== 'all') {
+            $query->where('category', $category);
         }
 
-        if ($request->filled('is_active')) {
-            $isActive = filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if (!is_null($isActive)) {
-                $query->where('is_active', $isActive);
-            }
-        }
-
-        if ($request->filled('is_featured')) {
-            $isFeatured = filter_var($request->input('is_featured'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if (!is_null($isFeatured)) {
-                $query->where('is_featured', $isFeatured);
-            }
-        }
-
-        if ($request->filled('q')) {
-            $q = $request->input('q');
-            $query->where(function ($sub) use ($q) {
-                $sub->where('title', 'like', "%{$q}%")
+        // optional: search (kalau mau sekalian)
+        $q = $request->query('q');
+        if ($q) {
+            $query->where(function ($w) use ($q) {
+                $w->where('title', 'like', "%{$q}%")
                     ->orWhere('slug', 'like', "%{$q}%");
             });
         }
 
-        $portfolios = $query->orderBy('order')->orderBy('id', 'desc')->get();
+        // sort default by order
+        $items = $query->orderBy('order')->latest('id')->get();
 
         return response()->json([
-            'data' => $portfolios,
+            'data' => $items
         ]);
     }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
@@ -19,6 +19,8 @@ import { getImgPath } from "@/utils/imagePath";
 
 const Header: React.FC = () => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [sticky, setSticky] = useState(false);
@@ -28,6 +30,26 @@ const Header: React.FC = () => {
   const signInRef = useRef<HTMLDivElement>(null);
 
   const authDialog = useContext(AuthDialogContext);
+
+  /* ================= AUTO OPEN LOGIN FROM URL ================= */
+  useEffect(() => {
+    const login = searchParams.get("login"); // "1"
+    const next = searchParams.get("next"); // "/admin"
+
+    if (login === "1") {
+      setIsSignInOpen(true);
+
+      if (next) {
+        sessionStorage.setItem("next_after_login", next);
+      } else {
+        sessionStorage.setItem("next_after_login", "/admin");
+      }
+
+      // bersihin query supaya kalau refresh gak kebuka terus
+      router.replace(pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   /* ================= SCROLL ================= */
   useEffect(() => {
@@ -39,10 +61,7 @@ const Header: React.FC = () => {
   /* ================= CLICK OUTSIDE ================= */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        signInRef.current &&
-        !signInRef.current.contains(e.target as Node)
-      ) {
+      if (signInRef.current && !signInRef.current.contains(e.target as Node)) {
         setIsSignInOpen(false);
       }
 
@@ -55,8 +74,7 @@ const Header: React.FC = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   /* ================= LOCK SCROLL ================= */
@@ -72,8 +90,9 @@ const Header: React.FC = () => {
     <>
       {/* ================= HEADER ================= */}
       <header
-        className={`sticky top-0 z-50 w-full transition-all ${sticky ? "bg-black/70 shadow-lg" : "bg-black/50"
-          }`}
+        className={`sticky top-0 z-50 w-full transition-all ${
+          sticky ? "bg-black/70 shadow-lg" : "bg-black/50"
+        }`}
       >
         <div className="container mx-auto flex items-center justify-between p-6">
           {/* LOGO */}
@@ -95,7 +114,6 @@ const Header: React.FC = () => {
           >
             <Icon icon="mdi:menu" className="text-3xl" />
           </button>
-
 
           {/* DESKTOP MENU */}
           <div className="hidden lg:flex items-center gap-6 ml-auto">
@@ -120,15 +138,12 @@ const Header: React.FC = () => {
         <div
           ref={mobileMenuRef}
           className={`lg:hidden fixed top-0 right-0 h-full w-full max-w-64
-    bg-black/70
-    backdrop-blur-sm
-    z-40 transform transition-transform duration-300
-    ${navbarOpen ? "translate-x-0" : "translate-x-full"}
-  `}
+            bg-black/70
+            backdrop-blur-sm
+            z-40 transform transition-transform duration-300
+            ${navbarOpen ? "translate-x-0" : "translate-x-full"}
+          `}
         >
-
-
-
           <div className="flex items-center justify-between p-4">
             <h2 className="font-bold">Menu</h2>
             <button onClick={() => setNavbarOpen(false)}>✕</button>
@@ -136,7 +151,10 @@ const Header: React.FC = () => {
 
           <nav className="flex flex-col p-4 gap-4">
             {headerData.map((item, index) => (
-              <MobileHeaderLink key={index} item={item} onClick={() => setNavbarOpen(false)}
+              <MobileHeaderLink
+                key={index}
+                item={item}
+                onClick={() => setNavbarOpen(false)}
               />
             ))}
 
@@ -185,22 +203,25 @@ const Header: React.FC = () => {
 
       {/* ================= ALERTS ================= */}
       <div
-        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] ${authDialog?.isSuccessDialogOpen ? "block" : "hidden"
-          }`}
+        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] ${
+          authDialog?.isSuccessDialogOpen ? "block" : "hidden"
+        }`}
       >
         <SuccessfullLogin />
       </div>
 
       <div
-        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] ${authDialog?.isFailedDialogOpen ? "block" : "hidden"
-          }`}
+        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] ${
+          authDialog?.isFailedDialogOpen ? "block" : "hidden"
+        }`}
       >
         <FailedLogin />
       </div>
 
       <div
-        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] ${authDialog?.isUserRegistered ? "block" : "hidden"
-          }`}
+        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] ${
+          authDialog?.isUserRegistered ? "block" : "hidden"
+        }`}
       >
         <UserRegistered />
       </div>

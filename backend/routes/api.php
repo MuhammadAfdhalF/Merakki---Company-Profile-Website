@@ -21,6 +21,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
+        Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+
     Route::middleware('is_admin')->group(function () {
         // upload
         Route::post('/upload', [UploadController::class, 'store']);

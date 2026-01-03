@@ -5,8 +5,12 @@ import Counter from '@/components/Home/Counter';
 import WorkGrow from '@/components/Home/WhoIs';
 import BuildAmazing from '@/components/Home/Branding';
 export const metadata: Metadata = {
-    title: "About | Sustainable",
+  title: "About | Meraki.",
+  icons: {
+    icon: "/images/logo/logo-web.png",
+  },
 };
+
 
 const page = () => {
   return (

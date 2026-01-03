@@ -5,9 +5,11 @@ import AddOns from "@/components/Home/add-ons";
 import React from "react";
 import { Metadata } from "next";
 export const metadata: Metadata = {
-  title: "Portfolio | Sustainable",
+  title: "Portfolio | Meraki.",
+  icons: {
+    icon: "/images/logo/logo-web.png",
+  },
 };
-
 const page = () => {
   return (
     <>

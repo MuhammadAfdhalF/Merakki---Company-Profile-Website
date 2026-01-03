@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
-const basePath = process.env.NODE_ENV === 'production' ? '/sustainable-nextjs' : '';
+const basePath = process.env.NODE_ENV === "production" ? "/sustainable-nextjs" : "";
 
 const nextConfig = {
-  output: 'export',
+  // output: "export",  // <- HAPUS / KOMENTAR
   basePath,
   assetPrefix: basePath,
   images: {
@@ -15,6 +15,6 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

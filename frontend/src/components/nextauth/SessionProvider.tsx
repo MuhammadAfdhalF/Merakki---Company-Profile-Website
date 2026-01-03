@@ -1,17 +1,18 @@
 "use client";
-import { SessionProvider } from "next-auth/react";
+
 import React from "react";
+import { SessionProvider } from "next-auth/react";
+import type { Session } from "next-auth";
 
 export default function SessionProviderComp({
   children,
   session,
 }: {
   children: React.ReactNode;
-  session: any;
+  session?: Session | null; // <- optional
 }) {
-  return (
-    <>
-      <SessionProvider session={session}>{children}</SessionProvider>
-    </>
-  );
+  // IMPORTANT:
+  // - kalau session undefined -> SessionProvider akan fetch /api/auth/session
+  // - kalau session null -> dianggap "sudah tau session kosong" (bisa bikin tidak fetch)
+  return <SessionProvider session={session}>{children}</SessionProvider>;
 }
