@@ -9,7 +9,7 @@ import { FC } from "react";
 const WHATSAPP_LINK = "https://wa.me/6288271962472";
 const INSTAGRAM_LINK =
   "https://www.instagram.com/merakicreatif?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
-const EMAIL_LINK = "mailto:hello@meraki.com";
+const EMAIL_LINK = "mailto:merakicreatif@gmail.com";
 const ACUYYY_LINK =
   "https://www.linkedin.com/in/muhammad-afdhal-f-3b3317217/?originalSubdomain=id";
 
@@ -120,7 +120,7 @@ const Footer: FC = () => {
                     width={20}
                     height={20}
                   />
-                  hello@meraki.com
+                  merakicreatif@gmail.com
                 </Link>
               </div>
             </div>

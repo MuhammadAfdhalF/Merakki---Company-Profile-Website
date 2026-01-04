@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 
 export type HomeSection = {
   id: number;
@@ -12,109 +13,113 @@ export type HomeSection = {
   updated_at?: string;
 };
 
-type Mode = "create" | "edit";
+function backendOriginFromApiBase(apiBase: string) {
+  return apiBase.replace(/\/api\/?$/, "");
+}
 
-type Props = {
-  open: boolean;
-  mode: Mode;
-  token: string;
-  apiBase: string;
-
-  // untuk edit
-  initial?: Partial<HomeSection>;
-
-  // untuk create auto order
-  defaultOrder: number;
-
-  onClose: () => void;
-  onSaved: (row: HomeSection) => void;
-};
+function toPublicAssetUrl(apiBase: string, path?: string) {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  const origin = backendOriginFromApiBase(apiBase);
+  return `${origin}${path.startsWith("/") ? "" : "/"}${path}`;
+}
 
 export default function HomeSectionModal({
   open,
   mode,
-  token,
-  apiBase,
-  initial,
-  defaultOrder,
+  initialData,
+  nextOrder,
   onClose,
   onSaved,
-}: Props) {
-  const isEdit = mode === "edit";
+}: {
+  open: boolean;
+  mode: "create" | "edit";
+  initialData: HomeSection | null;
+  nextOrder: number;
+  onClose: () => void;
+  onSaved: () => void | Promise<void>;
+}) {
+  const { data: session } = useSession();
+
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  const accessToken = (session as any)?.accessToken as string | undefined;
 
   const [title, setTitle] = useState("");
-  const [order, setOrder] = useState<number>(defaultOrder);
+  const [order, setOrder] = useState<number>(nextOrder);
   const [isActive, setIsActive] = useState(true);
+
   const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string>("");
+  const existingImagePath = useMemo(() => {
+    if (!initialData) return "";
+    return initialData.background_image || "";
+  }, [initialData]);
 
-  // preview existing bg
-  const fileBase = useMemo(() => apiBase.replace(/\/api\/?$/, ""), [apiBase]);
-  const existingImageUrl = initial?.background_image
-    ? `${fileBase}${initial.background_image}`
-    : "";
+  const existingImageUrl = useMemo(() => {
+    return toPublicAssetUrl(apiBase, existingImagePath);
+  }, [apiBase, existingImagePath]);
 
   useEffect(() => {
     if (!open) return;
 
-    setError("");
-    setFile(null);
-
-    if (isEdit) {
-      setTitle(initial?.title ?? "");
-      setOrder(Number(initial?.order ?? defaultOrder));
-      setIsActive(Boolean(initial?.is_active ?? true));
+    if (mode === "edit" && initialData) {
+      setTitle(initialData.title ?? "");
+      setOrder(Number(initialData.order ?? 0));
+      setIsActive(Boolean(initialData.is_active));
     } else {
       setTitle("");
-      setOrder(defaultOrder);
+      setOrder(nextOrder);
       setIsActive(true);
     }
-  }, [open, isEdit, initial, defaultOrder]);
+
+    setFile(null);
+  }, [open, mode, initialData, nextOrder]);
 
   if (!open) return null;
 
-  const uploadImage = async (picked: File) => {
+  async function uploadImage(): Promise<string> {
+    if (!file) return "";
+    if (!apiBase) throw new Error("NEXT_PUBLIC_API_BASE_URL belum di-set");
+    if (!accessToken) throw new Error("Kamu belum login");
+
     const fd = new FormData();
-    fd.append("file", picked);
+    fd.append("file", file);
     fd.append("folder", "home-sections");
 
     const res = await fetch(`${apiBase}/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${accessToken}` },
       body: fd,
     });
 
     if (!res.ok) {
-      throw new Error("Upload gagal");
+      const txt = await res.text();
+      throw new Error(txt || `Upload gagal (HTTP ${res.status})`);
     }
 
     const json = await res.json();
-    if (!json?.path) throw new Error("Response upload tidak valid");
-    return String(json.path) as string; // contoh: "/storage/home-sections/xxx.png"
-  };
+    if (!json?.path) throw new Error("Response upload tidak ada path");
+    return String(json.path);
+  }
 
-  const handleSubmit = async () => {
-    setSubmitting(true);
-    setError("");
-
+  async function handleSave() {
     try {
+      if (!apiBase) throw new Error("NEXT_PUBLIC_API_BASE_URL belum di-set");
+      if (!accessToken) throw new Error("Kamu belum login");
+
       if (!title.trim()) throw new Error("Title wajib diisi");
-      if (!Number.isFinite(order)) throw new Error("Order tidak valid");
+      if (!Number.isFinite(Number(order))) throw new Error("Order tidak valid");
 
       // wajib ada gambar saat create
-      if (!isEdit && !file) {
-        throw new Error("Background image wajib diupload");
+      if (mode === "create" && !file) {
+        throw new Error("Background image wajib diupload untuk create");
       }
 
-      // background_image logic
-      let background_image = initial?.background_image ?? "";
-      if (file) {
-        background_image = await uploadImage(file);
-      }
+      setSaving(true);
+
+      let background_image = existingImagePath;
+      if (file) background_image = await uploadImage();
 
       const payload = {
         title: title.trim(),
@@ -123,219 +128,157 @@ export default function HomeSectionModal({
         is_active: Boolean(isActive),
       };
 
-      const url = isEdit
-        ? `${apiBase}/home-sections/${initial?.id}`
-        : `${apiBase}/home-sections`;
+      const url =
+        mode === "create"
+          ? `${apiBase}/home-sections`
+          : `${apiBase}/home-sections/${initialData?.id}`;
 
-      const method = isEdit ? "PUT" : "POST";
+      const method = mode === "create" ? "POST" : "PATCH";
 
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        const t = await res.text();
-        throw new Error(`Save gagal: ${t}`);
+        const txt = await res.text();
+        throw new Error(txt || `Save gagal (HTTP ${res.status})`);
       }
 
-      const json = await res.json();
-
-      // kamu sebelumnya pakai format { message, data }
-      const saved: HomeSection = json?.data ?? json;
-
-      onSaved(saved);
+      await onSaved();
       onClose();
     } catch (e: any) {
-      setError(e?.message || "Terjadi error");
+      alert(e?.message || "Gagal simpan");
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      {/* overlay */}
-      <button
-        onClick={onClose}
-        className="absolute inset-0 bg-black/70"
-        aria-label="Close modal overlay"
-      />
-
-      {/* modal */}
-      <div className="relative w-[92vw] max-w-[820px] rounded-2xl border border-white/10 bg-[#0D0D0D] p-6 shadow-2xl">
-        {/* header */}
-        <div className="flex items-start justify-between gap-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-3xl rounded-2xl border border-white/10 bg-[#0D0D0D] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
           <div>
             <h2 className="text-xl font-semibold">
-              {isEdit ? "Edit Home Section" : "Add Home Section"}
+              {mode === "create" ? "Add Home Section" : "Edit Home Section"}
             </h2>
             <p className="text-sm text-white/60 mt-1">
-              Upload background image {isEdit ? "(opsional saat edit)" : "(wajib)"} lalu simpan.
+              Upload background image {mode === "edit" ? "(opsional)" : "(wajib)"}, lalu simpan.
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-xl bg-white/5 hover:bg-white/10 transition grid place-items-center"
+            className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        {/* body */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* title */}
-          <div className="md:col-span-2">
-            <label className="text-sm text-white/70">Title</label>
+        {/* Body */}
+        <div className="p-6 space-y-5">
+          {/* Title */}
+          <div>
+            <label className="block text-sm text-white/70 mb-2">Title</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 outline-none focus:border-white/20"
               placeholder="Home 1"
+              className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 outline-none focus:border-white/20"
             />
           </div>
 
-          {/* order */}
-          <div>
-            <label className="text-sm text-white/70">Order</label>
-            <input
-              type="number"
-              value={order}
-              onChange={(e) => setOrder(Number(e.target.value))}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 outline-none focus:border-white/20"
-            />
-            <p className="text-xs text-white/45 mt-2">
-              Default auto: {defaultOrder} (kamu masih bisa ubah manual)
-            </p>
-          </div>
-
-          {/* active */}
-          <div className="flex items-end">
-            <label className="flex items-center gap-3 text-sm text-white/70 select-none">
+          {/* Order + Active */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-white/70 mb-2">Order</label>
               <input
+                type="number"
+                value={order}
+                onChange={(e) => setOrder(Number(e.target.value))}
+                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 outline-none focus:border-white/20"
+              />
+              <p className="mt-1 text-xs text-white/40">
+                Default otomatis: {nextOrder}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 md:mt-7">
+              <input
+                id="isActiveHomeSection"
                 type="checkbox"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="h-4 w-4"
+                className="h-5 w-5"
               />
-              Active
-            </label>
+              <label htmlFor="isActiveHomeSection" className="text-sm text-white/80">
+                Active
+              </label>
+            </div>
           </div>
 
-          {/* file */}
-          <div className="md:col-span-2">
-            <label className="text-sm text-white/70">
-              Background Image {isEdit ? "(optional)" : "(wajib)"}
+          {/* Background image */}
+          <div>
+            <label className="block text-sm text-white/70 mb-2">
+              Background Image {mode === "create" ? "(wajib)" : "(opsional jika mau ganti)"}
             </label>
 
-            <div className="mt-2 rounded-2xl border border-white/10 bg-black/30 p-4">
-              {isEdit && existingImageUrl && !file && (
-                <div className="mb-3 text-xs text-white/55">
-                  Current image:{" "}
-                  <a
-                    className="underline"
-                    href={existingImageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    preview
-                  </a>
-                </div>
-              )}
-
+            <div className="flex flex-col md:flex-row gap-4 md:items-center">
               <input
                 type="file"
-                accept="image/png,image/jpg,image/jpeg,image/webp"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-white/70 file:mr-4 file:rounded-xl file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-white hover:file:bg-white/15"
+                className="w-full md:flex-1 rounded-xl bg-black/30 border border-white/10 px-4 py-3"
               />
 
-              {file && (
-                <div className="mt-3 text-xs text-white/55">
-                  Selected: {file.name}
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {file ? (
+                  <div className="text-xs text-white/60">
+                    File: <span className="text-white">{file.name}</span>
+                  </div>
+                ) : existingImageUrl ? (
+                  <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={existingImageUrl}
+                      alt="Current background"
+                      className="h-12 w-20 rounded-xl object-cover border border-white/10 bg-black/30"
+                    />
+                    <div className="text-xs text-white/60">Pakai gambar lama</div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-white/40">Belum ada gambar</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* error */}
-        {error && (
-          <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {error}
-          </div>
-        )}
-
-        {/* footer */}
-        <div className="mt-6 flex items-center justify-end gap-3">
+        {/* Footer */}
+        <div className="px-6 py-5 border-t border-white/10 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition text-sm"
-            disabled={submitting}
+            className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"
+            disabled={saving}
           >
             Cancel
           </button>
 
           <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="px-5 py-2 rounded-xl bg-[#470000] hover:bg-[#5a0000] transition text-sm font-medium"
+            onClick={handleSave}
+            className="px-5 py-3 rounded-xl bg-[#470000] hover:bg-[#5a0000] transition font-medium disabled:opacity-60"
+            disabled={saving}
           >
-            {submitting ? "Saving..." : "Save"}
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-/** modal kecil untuk preview gambar (dipakai page.tsx) */
-export function ImagePreviewModal({
-  open,
-  url,
-  title,
-  onClose,
-}: {
-  open: boolean;
-  url: string;
-  title?: string;
-  onClose: () => void;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      <button
-        onClick={onClose}
-        className="absolute inset-0 bg-black/80"
-        aria-label="Close preview overlay"
-      />
-      <div className="relative w-[92vw] max-w-[980px] rounded-2xl border border-white/10 bg-[#0D0D0D] p-4 shadow-2xl">
-        <div className="flex items-center justify-between gap-3 px-2 pb-3">
-          <div className="text-sm text-white/70 truncate">
-            {title ?? "Preview"}
-          </div>
-          <button
-            onClick={onClose}
-            className="h-9 w-9 rounded-xl bg-white/5 hover:bg-white/10 transition grid place-items-center"
-            aria-label="Close preview"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={url}
-          alt={title ?? "Preview"}
-          className="w-full max-h-[75vh] object-contain rounded-xl bg-black/30"
-        />
       </div>
     </div>
   );

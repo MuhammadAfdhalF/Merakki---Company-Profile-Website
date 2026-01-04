@@ -40,6 +40,7 @@ export default function AdminHomeSectionsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<HomeSection | null>(null);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -100,14 +101,15 @@ export default function AdminHomeSectionsPage() {
 
   function openAdd() {
     setEditing(null);
+    setModalMode("create");
     setIsModalOpen(true);
   }
 
   function openEdit(row: HomeSection) {
     setEditing(row);
+    setModalMode("edit");
     setIsModalOpen(true);
   }
-
   async function handleDelete(id: number) {
     if (!accessToken) return;
 
@@ -225,11 +227,10 @@ export default function AdminHomeSectionsPage() {
 
                       <td className="text-center">
                         <span
-                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${
-                            row.is_active
-                              ? "bg-green-500/15 text-green-200 border-green-500/25"
-                              : "bg-white/10 text-white/70 border-white/10"
-                          }`}
+                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${row.is_active
+                            ? "bg-green-500/15 text-green-200 border-green-500/25"
+                            : "bg-white/10 text-white/70 border-white/10"
+                            }`}
                         >
                           {String(row.is_active)}
                         </span>
@@ -328,22 +329,20 @@ export default function AdminHomeSectionsPage() {
         )}
       </div>
 
-      {/* CREATE/EDIT MODAL */}
       {isModalOpen && (
         <HomeSectionModal
           open={isModalOpen}
+          mode={modalMode}
+          initialData={editing}
+          nextOrder={nextOrder}
           onClose={() => setIsModalOpen(false)}
           onSaved={async () => {
             setIsModalOpen(false);
             await fetchRows();
           }}
-          // mode add/edit
-          initial={editing}
-          defaultOrder={nextOrder}
-          apiBase={apiBase}
-          accessToken={accessToken || ""}
         />
       )}
+
 
       {/* IMAGE PREVIEW MODAL */}
       {previewUrl && (

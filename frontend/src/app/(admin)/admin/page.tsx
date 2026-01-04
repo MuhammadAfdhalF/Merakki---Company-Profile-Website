@@ -273,7 +273,7 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-white/10 bg-black/30 p-5 hover:bg-black/40 hover:border-white/20 transition"
+      className="group rounded-2xl border border-white/10 bg-black/30 p-5 hover:bg-white/20 hover:border-white/20 transition"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
