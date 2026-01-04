@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import { getImgPath } from "@/utils/imagePath";
 
@@ -59,7 +59,7 @@ const fallbackPortfolioData: PortfolioUiItem[] = [
 ];
 
 const Portofolio = () => {
-  const [modalItem, setModalItem] = useState<any>(null);
+  const [modalItem, setModalItem] = useState<PortfolioUiItem | null>(null);
   const [animating, setAnimating] = useState(false);
 
   const [portfolioData, setPortfolioData] =
@@ -67,6 +67,15 @@ const Portofolio = () => {
 
   const itemsPerPage = 3;
   const [page, setPage] = useState(0);
+
+  // ====== IMPORTANT: stop "refresh-like" effect ======
+  // We avoid AOS.refreshHard() on every page change.
+  // If needed, we call a light refresh only when data first loads.
+  const didAosRefreshAfterLoad = useRef(false);
+
+  // Optional: Pause autoplay when section not visible (prevents changes while user is in Clients)
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [inView, setInView] = useState(true);
 
   const totalPages = useMemo(() => {
     const tp = Math.ceil(portfolioData.length / itemsPerPage);
@@ -95,7 +104,6 @@ const Portofolio = () => {
         if (!alive) return;
 
         if (featured.length > 0) {
-          // backend sudah orderBy('order'), tapi aman sort juga
           const sorted = [...featured].sort(
             (a, b) => Number(a?.order ?? 0) - Number(b?.order ?? 0)
           );
@@ -105,13 +113,11 @@ const Portofolio = () => {
               const mediaArr = Array.isArray(p?.media) ? p.media : [];
               const first = mediaArr[0];
 
-              // only allow image/video for this section
               const mType = String(first?.type || "").toLowerCase();
               if (mType !== "image" && mType !== "video") return null;
 
               const rawPath = String(first?.path || "");
               const abs = rawPath ? backendFileUrl(rawPath) : "";
-
               if (!abs) return null;
 
               return {
@@ -128,6 +134,18 @@ const Portofolio = () => {
             setPortfolioData(mapped);
             setPage(0);
             setModalItem(null);
+
+            // Light refresh once after data loaded (NOT every page)
+            // This prevents full-page "kedip/refresh" feeling.
+            if (!didAosRefreshAfterLoad.current) {
+              didAosRefreshAfterLoad.current = true;
+              // small delay so DOM is ready
+              setTimeout(() => {
+                try {
+                  AOS.refresh();
+                } catch {}
+              }, 50);
+            }
           }
         }
       } catch {
@@ -142,9 +160,26 @@ const Portofolio = () => {
     };
   }, []);
 
+  // ====== Observe visibility to pause autoplay when user scrolls away ======
   useEffect(() => {
-    AOS.refreshHard();
-  }, [page]);
+    if (!sectionRef.current) return;
+
+    const el = sectionRef.current;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setInView(!!entry?.isIntersecting);
+      },
+      {
+        // if at least 25% of portfolio section is visible, consider in view
+        threshold: 0.25,
+      }
+    );
+
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const handlePageChange = (newPage: number) => {
     setAnimating(true);
@@ -154,17 +189,25 @@ const Portofolio = () => {
     }, 320);
   };
 
+  // ====== Autoplay: only when section is visible (inView) and there are pages ======
   useEffect(() => {
+    if (!inView) return;
+    if (totalPages <= 1) return;
+
     const timer = setInterval(() => {
       handlePageChange((page + 1) % totalPages);
     }, 8000);
+
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, totalPages]);
+  }, [page, totalPages, inView]);
+
+  const resolveSrc = (src: string) => (src.startsWith("http") ? src : getImgPath(src));
 
   return (
     <>
       <section
+        ref={sectionRef as any}
         className="py-20 relative overflow-hidden"
         style={{
           background: "linear-gradient(180deg, #161616 0%, #170000 100%)",
@@ -208,7 +251,7 @@ const Portofolio = () => {
                   {/* IMAGE / VIDEO */}
                   {item.type === "image" ? (
                     <Image
-                      src={item.src.startsWith("http") ? item.src : getImgPath(item.src)}
+                      src={resolveSrc(item.src)}
                       alt={item.alt}
                       width={0}
                       height={0}
@@ -219,7 +262,7 @@ const Portofolio = () => {
                     />
                   ) : (
                     <video
-                      src={item.src.startsWith("http") ? item.src : getImgPath(item.src)}
+                      src={resolveSrc(item.src)}
                       muted
                       loop
                       playsInline
@@ -230,7 +273,7 @@ const Portofolio = () => {
                   {/* OVERLAY */}
                   <div className="absolute inset-0 bg-[#161616]/30 group-hover:bg-[#161616]/50 transition-all duration-300"></div>
 
-                  {/* TITLE */}
+                  {/* TITLE (tetap) */}
                   <div className="absolute top-6 left-6">
                     <span className="text-white font-bold text-[22px] drop-shadow-lg">
                       {item.title}
@@ -287,7 +330,11 @@ const Portofolio = () => {
           className="fixed inset-0 bg-[#161616]/70 backdrop-blur-sm z-[999] flex items-center justify-center p-6"
           onClick={() => setModalItem(null)}
         >
-          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+          {/* Transparent wrapper + contain so portrait doesn't get cropped */}
+          <div
+            className="relative max-w-5xl w-full flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className="absolute -top-10 right-0 text-white text-3xl"
               onClick={() => setModalItem(null)}
@@ -295,23 +342,30 @@ const Portofolio = () => {
               ✕
             </button>
 
-            {modalItem.type === "image" ? (
-              <Image
-                src={modalItem.src.startsWith("http") ? modalItem.src : getImgPath(modalItem.src)}
-                alt="Preview"
-                width={1200}
-                height={800}
-                className="rounded-xl shadow-2xl"
-                unoptimized
-              />
-            ) : (
-              <video
-                src={modalItem.src.startsWith("http") ? modalItem.src : getImgPath(modalItem.src)}
-                controls
-                autoPlay
-                className="w-full rounded-xl shadow-2xl"
-              />
-            )}
+            {/* Media area: fixed viewport height so portrait shows fully */}
+            <div className="relative w-full h-[80vh] max-h-[80vh] flex items-center justify-center">
+              {modalItem.type === "image" ? (
+                <Image
+                  src={resolveSrc(modalItem.src)}
+                  alt={modalItem.title}
+                  fill
+                  className="object-contain rounded-xl shadow-2xl"
+                  unoptimized
+                />
+              ) : (
+                <video
+                  src={resolveSrc(modalItem.src)}
+                  controls
+                  autoPlay
+                  className="w-full h-full object-contain rounded-xl shadow-2xl"
+                />
+              )}
+            </div>
+
+            {/* TITLE under media (like your screenshot) */}
+            <p className="text-white text-center mt-4 text-sm">
+              {modalItem.title}
+            </p>
           </div>
         </div>
       )}

@@ -16,7 +16,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 type UiPortfolioItem = {
   type: "image" | "video";
-  src: string; // absolute from backend
+  src: string; // absolute from backend OR local fallback
   title: string;
   category: string; // "Design" | "Photography" | ...
   slug?: string;
@@ -55,8 +55,7 @@ const fallbackData: UiPortfolioItem[] = [
 
 export default function PortfolioContent({ slug }: { slug?: string }) {
   const [activeTab, setActiveTab] = useState("All");
-  const [activeItem, setActiveItem] = useState<any>(null);
-
+  const [activeItem, setActiveItem] = useState<UiPortfolioItem | null>(null);
   const [items, setItems] = useState<UiPortfolioItem[]>(fallbackData);
 
   /* ESC CLOSE */
@@ -75,7 +74,6 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
     async function load() {
       try {
         const data = await fetchPublicPortfolios("all"); // GET /public/portfolios?category=all
-
         if (!alive) return;
 
         const mapped: UiPortfolioItem[] = (Array.isArray(data) ? data : [])
@@ -84,7 +82,6 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
             const first = mediaArr[0];
 
             const t = String(first?.type || "").toLowerCase();
-
             // Only image/video for this UI (skip pdf so layout tetap aman)
             if (t !== "image" && t !== "video") return null;
 
@@ -105,16 +102,13 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
           })
           .filter(Boolean) as UiPortfolioItem[];
 
-        if (mapped.length > 0) {
-          setItems(mapped);
-        }
+        if (mapped.length > 0) setItems(mapped);
       } catch {
         // fallback tetap dipakai
       }
     }
 
     load();
-
     return () => {
       alive = false;
     };
@@ -124,34 +118,25 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
   const tabs = useMemo(() => {
     const unique = Array.from(new Set(items.map((x) => x.category))).filter(Boolean);
 
-    // Optional: rapihin urutan sesuai enum backend
     const ordered = ["Design", "Photography", "Video", "Branding"].filter((c) =>
       unique.includes(c)
     );
-
-    // kalau ada kategori lain (future), taruh di belakang
     const rest = unique.filter((c) => !ordered.includes(c));
 
     return ["All", ...ordered, ...rest];
   }, [items]);
 
   const filteredData =
-    activeTab === "All"
-      ? items
-      : items.filter((item) => item.category === activeTab);
+    activeTab === "All" ? items : items.filter((item) => item.category === activeTab);
 
-  /* If route has slug, auto open modal for that portfolio (tanpa ubah layout) */
+  /* If route has slug, auto open modal for that portfolio */
   useEffect(() => {
     if (!slug) return;
     const found = items.find((x) => x.slug === slug);
     if (found) setActiveItem(found);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, items]);
 
-  const normalizeSrc = (src: string) => {
-    // if already absolute, use it. if fallback local, keep as is.
-    return src.startsWith("http") ? src : src;
-  };
+  const normalizeSrc = (src: string) => src;
 
   return (
     <>
@@ -211,7 +196,7 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
                     alt={item.title}
                     fill
                     className="
-                      object-cover
+                      object-contain
                       transition-transform duration-700
                       group-hover:scale-110
                     "
@@ -277,7 +262,7 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
         <div
           className="
             fixed inset-0 z-[9999]
-            bg-black/70 backdrop-blur-sm
+            bg-transparent backdrop-blur-sm
             flex items-center justify-center px-4
             animate-fade-in
           "
@@ -293,7 +278,7 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
                 alt={activeItem.title}
                 width={1400}
                 height={900}
-                className="w-full h-auto rounded-xl"
+                className="w-full h-[80vh] object-contain rounded-xl"
                 unoptimized
               />
             ) : (
@@ -301,7 +286,7 @@ export default function PortfolioContent({ slug }: { slug?: string }) {
                 src={normalizeSrc(activeItem.src)}
                 controls
                 autoPlay
-                className="w-full rounded-xl"
+                className="w-full max-h-[80vh] rounded-xl"
               />
             )}
 
