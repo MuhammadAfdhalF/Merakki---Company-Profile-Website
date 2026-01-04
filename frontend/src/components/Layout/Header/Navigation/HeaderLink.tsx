@@ -71,27 +71,34 @@ const HeaderLink: React.FC<{ item: HeaderItem }> = ({ item }) => {
 
       {/* SUBMENU */}
       {submenuOpen && (
-        <div className="absolute py-2 top-10 left-0 mt-0.5 w-60 bg-white dark:bg-darkmode shadow-lg dark:shadow-darkmd rounded-2xl z-50">
-          {item.submenu?.map((subItem, index) => {
-            const isSubActive = cleanPath === subItem.href.replace(/\/$/, "");
+        // ✅ "hover bridge" wrapper: area transparan nempel dari tombol ke dropdown
+        <div className="absolute left-0 top-full w-60 z-50">
+          {/* jarak visual tetap ada, tapi hover tidak putus karena wrapper ini masih kena hover */}
+          <div className="pt-2">
+            <div className="py-2 w-60 bg-white dark:bg-darkmode shadow-lg dark:shadow-darkmd rounded-2xl">
+              {item.submenu?.map((subItem, index) => {
+                const isSubActive =
+                  cleanPath === subItem.href.replace(/\/$/, "");
 
-            return (
-              <Link
-                key={index}
-                href={subItem.href}
-                className={`
-                  block px-4 py-2 rounded-md transition
-                  ${
-                    isSubActive
-                      ? "bg-[#470000B3] text-white"
-                      : "text-black dark:text-white hover:bg-[#470000B3] hover:text-white"
-                  }
-                `}
-              >
-                {subItem.label}
-              </Link>
-            );
-          })}
+                return (
+                  <Link
+                    key={index}
+                    href={subItem.href}
+                    className={`
+                      block px-4 py-2 rounded-md transition
+                      ${
+                        isSubActive
+                          ? "bg-[#470000B3] text-white"
+                          : "text-black dark:text-white hover:bg-[#470000B3] hover:text-white"
+                      }
+                    `}
+                  >
+                    {subItem.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
     </div>
