@@ -1,55 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import HeroSub from "@/components/SharedComponent/HeroSub";
+import { fetchPublicPortfolios } from "@/lib/publicApi";
+import { backendFileUrl } from "@/lib/backendUrl";
 
-/* ================= TABS ================= */
-const tabs = ["All", "Design", "Photography", "Video", "Branding"];
+/* ================= CATEGORY LABEL MAP ================= */
+const CATEGORY_LABEL: Record<string, string> = {
+  design: "Design",
+  photography: "Photography",
+  video: "Video",
+  branding: "Branding",
+};
 
-/* ================= DATA ================= */
-const portfolioData = [
+type UiPortfolioItem = {
+  type: "image" | "video";
+  src: string; // absolute from backend
+  title: string;
+  category: string; // "Design" | "Photography" | ...
+  slug?: string;
+};
+
+const fallbackData: UiPortfolioItem[] = [
   {
     type: "image",
     src: "/images/hero/home.jpg",
     title: "Brand Identity Concept",
     category: "Design",
+    slug: "brand-identity-concept",
   },
   {
     type: "image",
     src: "/images/hero/home_2.jpg",
     title: "Product Photography",
     category: "Photography",
+    slug: "product-photography",
   },
   {
     type: "video",
     src: "/images/portofolio/vidio-porto.mp4",
     title: "Brand Campaign Video",
     category: "Video",
+    slug: "brand-campaign-video",
   },
   {
     type: "image",
     src: "/images/hero/home_3.jpg",
     title: "Social Media Visual",
     category: "Branding",
-  },
-  {
-    type: "video",
-    src: "/images/portofolio/vidio-porto.mp4",
-    title: "Reels Marketing Video",
-    category: "Video",
-  },
-  {
-    type: "image",
-    src: "/images/hero/home.jpg",
-    title: "Creative Direction",
-    category: "Design",
+    slug: "social-media-visual",
   },
 ];
 
-export default function PortfolioContent() {
+export default function PortfolioContent({ slug }: { slug?: string }) {
   const [activeTab, setActiveTab] = useState("All");
   const [activeItem, setActiveItem] = useState<any>(null);
+
+  const [items, setItems] = useState<UiPortfolioItem[]>(fallbackData);
 
   /* ESC CLOSE */
   useEffect(() => {
@@ -60,10 +68,90 @@ export default function PortfolioContent() {
     return () => window.removeEventListener("keydown", esc);
   }, []);
 
+  /* LOAD ALL PORTFOLIOS FROM API */
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        const data = await fetchPublicPortfolios("all"); // GET /public/portfolios?category=all
+
+        if (!alive) return;
+
+        const mapped: UiPortfolioItem[] = (Array.isArray(data) ? data : [])
+          .map((p: any) => {
+            const mediaArr = Array.isArray(p?.media) ? p.media : [];
+            const first = mediaArr[0];
+
+            const t = String(first?.type || "").toLowerCase();
+
+            // Only image/video for this UI (skip pdf so layout tetap aman)
+            if (t !== "image" && t !== "video") return null;
+
+            const rawPath = String(first?.path || "");
+            const absSrc = rawPath ? backendFileUrl(rawPath) : "";
+            if (!absSrc) return null;
+
+            const catValue = String(p?.category || "").toLowerCase();
+            const catLabel = CATEGORY_LABEL[catValue] || catValue || "Design";
+
+            return {
+              type: t as "image" | "video",
+              src: absSrc,
+              title: String(p?.title || "Portfolio"),
+              category: catLabel,
+              slug: String(p?.slug || ""),
+            } as UiPortfolioItem;
+          })
+          .filter(Boolean) as UiPortfolioItem[];
+
+        if (mapped.length > 0) {
+          setItems(mapped);
+        }
+      } catch {
+        // fallback tetap dipakai
+      }
+    }
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  /* Tabs auto from API data (All + unique categories) */
+  const tabs = useMemo(() => {
+    const unique = Array.from(new Set(items.map((x) => x.category))).filter(Boolean);
+
+    // Optional: rapihin urutan sesuai enum backend
+    const ordered = ["Design", "Photography", "Video", "Branding"].filter((c) =>
+      unique.includes(c)
+    );
+
+    // kalau ada kategori lain (future), taruh di belakang
+    const rest = unique.filter((c) => !ordered.includes(c));
+
+    return ["All", ...ordered, ...rest];
+  }, [items]);
+
   const filteredData =
     activeTab === "All"
-      ? portfolioData
-      : portfolioData.filter((item) => item.category === activeTab);
+      ? items
+      : items.filter((item) => item.category === activeTab);
+
+  /* If route has slug, auto open modal for that portfolio (tanpa ubah layout) */
+  useEffect(() => {
+    if (!slug) return;
+    const found = items.find((x) => x.slug === slug);
+    if (found) setActiveItem(found);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, items]);
+
+  const normalizeSrc = (src: string) => {
+    // if already absolute, use it. if fallback local, keep as is.
+    return src.startsWith("http") ? src : src;
+  };
 
   return (
     <>
@@ -81,7 +169,6 @@ export default function PortfolioContent() {
         }}
       >
         <div className="container">
-
           {/* ================= TABS ================= */}
           <div className="flex flex-wrap gap-8 mb-14">
             {tabs.map((tab) => (
@@ -106,7 +193,7 @@ export default function PortfolioContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredData.map((item, index) => (
               <div
-                key={index}
+                key={`${item.slug || "item"}-${index}`}
                 data-aos="fade-up"
                 data-aos-delay={index * 100}
                 data-aos-duration="800"
@@ -120,7 +207,7 @@ export default function PortfolioContent() {
                 {/* IMAGE / VIDEO */}
                 {item.type === "image" ? (
                   <Image
-                    src={item.src}
+                    src={normalizeSrc(item.src)}
                     alt={item.title}
                     fill
                     className="
@@ -128,10 +215,11 @@ export default function PortfolioContent() {
                       transition-transform duration-700
                       group-hover:scale-110
                     "
+                    unoptimized
                   />
                 ) : (
                   <video
-                    src={item.src}
+                    src={normalizeSrc(item.src)}
                     muted
                     loop
                     playsInline
@@ -176,9 +264,7 @@ export default function PortfolioContent() {
                     </svg>
                   </div>
 
-                  <p className="text-white text-sm font-medium">
-                    {item.title}
-                  </p>
+                  <p className="text-white text-sm font-medium">{item.title}</p>
                 </div>
               </div>
             ))}
@@ -203,15 +289,16 @@ export default function PortfolioContent() {
           >
             {activeItem.type === "image" ? (
               <Image
-                src={activeItem.src}
+                src={normalizeSrc(activeItem.src)}
                 alt={activeItem.title}
                 width={1400}
                 height={900}
                 className="w-full h-auto rounded-xl"
+                unoptimized
               />
             ) : (
               <video
-                src={activeItem.src}
+                src={normalizeSrc(activeItem.src)}
                 controls
                 autoPlay
                 className="w-full rounded-xl"

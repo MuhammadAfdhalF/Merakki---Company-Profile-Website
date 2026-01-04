@@ -1,14 +1,83 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { accordionData } from "../../../app/api/data";
 import Link from "next/link";
+
+import { fetchPublicHome } from "@/lib/publicApi";
+
+type FaqItem = {
+  id?: number;
+  question: string;
+  answer: string;
+  order?: number;
+  is_active?: boolean | number;
+};
+
+// bentuk yang dipakai UI kamu (title/content)
+type UiFaqItem = {
+  id?: number;
+  title: string;
+  content: string;
+  order?: number;
+};
 
 const FaqQuestion = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
+  // fallback: tetap pakai accordionData lama
+  const [faqData, setFaqData] = useState<UiFaqItem[]>(
+    (accordionData || []).map((x: any, idx: number) => ({
+      id: x?.id ?? idx,
+      title: String(x?.title ?? ""),
+      content: String(x?.content ?? ""),
+      order: Number(x?.order ?? idx),
+    }))
+  );
+
   const toggleAccordion = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
+
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        const home = await fetchPublicHome();
+        const items: FaqItem[] = Array.isArray((home as any)?.faqs)
+          ? ((home as any).faqs as FaqItem[])
+          : [];
+
+        if (!alive) return;
+
+        if (items.length > 0) {
+          // backend sudah orderBy('order'), tapi aman sort juga
+          const sorted = [...items].sort(
+            (a, b) => Number(a.order ?? 0) - Number(b.order ?? 0)
+          );
+
+          const mapped: UiFaqItem[] = sorted.map((x) => ({
+            id: x.id,
+            title: String(x.question ?? ""),
+            content: String(x.answer ?? ""),
+            order: Number(x.order ?? 0),
+          }));
+
+          setFaqData(mapped);
+          setActiveIndex(null); // reset buka/tutup saat data berubah
+        }
+      } catch {
+        // fallback tetap dipakai
+      }
+    }
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <section
@@ -25,11 +94,8 @@ const FaqQuestion = () => {
 
           {/* CARD FAQ */}
           <div className="overflow-hidden relative z-10 lg:w-770 w-full m-auto bg-[#400000] rounded-2xl">
-            {accordionData.map((item, index) => (
-              <div
-                key={index}
-                className="bg-[#400000]"
-              >
+            {faqData.map((item, index) => (
+              <div key={item.id ?? index} className="bg-[#400000]">
                 {/* QUESTION */}
                 <button
                   type="button"
@@ -43,9 +109,7 @@ const FaqQuestion = () => {
                     focus:text-white active:text-white
                   "
                 >
-                  <span className="text-white">
-                    {item.title}
-                  </span>
+                  <span className="text-white">{item.title}</span>
 
                   <span className="opacity-90">
                     {activeIndex === index ? "–" : "+"}
@@ -57,9 +121,10 @@ const FaqQuestion = () => {
                   className={`
                     overflow-hidden transition-all duration-300
                     bg-[#400000]
-                    ${activeIndex === index
-                      ? "max-h-96 opacity-100"
-                      : "max-h-0 opacity-0"
+                    ${
+                      activeIndex === index
+                        ? "max-h-96 opacity-100"
+                        : "max-h-0 opacity-0"
                     }
                   `}
                 >
@@ -75,9 +140,7 @@ const FaqQuestion = () => {
 
             {/* FOOTER */}
             <div className="text-center bg-[#400000] py-8">
-              <p className="text-white text-base pb-2">
-                Still have questions?
-              </p>
+              <p className="text-white text-base pb-2">Still have questions?</p>
               <Link
                 href="http://wa.me/6288271962472"
                 className="text-white underline hover:text-white"

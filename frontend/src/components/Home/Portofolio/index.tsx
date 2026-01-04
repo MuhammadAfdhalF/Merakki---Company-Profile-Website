@@ -1,59 +1,78 @@
 "use client";
+
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { getImgPath } from "@/utils/imagePath";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+import { fetchPublicHome } from "@/lib/publicApi";
+import { backendFileUrl } from "@/lib/backendUrl";
+
+type PortfolioUiItem = {
+  type: "image" | "video";
+  src: string; // can be absolute (http...) or local "/images/..."
+  title: string;
+  alt: string;
+  slug?: string;
+};
+
+const fallbackPortfolioData: PortfolioUiItem[] = [
+  {
+    type: "image",
+    src: "/images/portofolio/porto-1.png",
+    title: "Brand Identity Project",
+    alt: "Portfolio 1",
+  },
+  {
+    type: "video",
+    src: "/images/portofolio/vidio-porto.mp4",
+    title: "Brand Campaign Video",
+    alt: "Portfolio Video 1",
+  },
+  {
+    type: "image",
+    src: "/images/portofolio/porto-2.png",
+    title: "Creative Content Design",
+    alt: "Portfolio 2",
+  },
+  {
+    type: "video",
+    src: "/images/portofolio/vidio-porto.mp4",
+    title: "Reels Marketing Video",
+    alt: "Portfolio Video 2",
+  },
+  {
+    type: "image",
+    src: "/images/portofolio/porto-3.png",
+    title: "Digital Marketing Visuals",
+    alt: "Portfolio 3",
+  },
+  {
+    type: "image",
+    src: "/images/portofolio/porto-1.png",
+    title: "Brand Identity Project 2",
+    alt: "Portfolio 4",
+  },
+];
+
 const Portofolio = () => {
   const [modalItem, setModalItem] = useState<any>(null);
   const [animating, setAnimating] = useState(false);
 
-  const portfolioData = [
-    {
-      type: "image",
-      src: "/images/portofolio/porto-1.png",
-      title: "Brand Identity Project",
-      alt: "Portfolio 1",
-    },
-    {
-      type: "video",
-      src: "/images/portofolio/vidio-porto.mp4",
-      title: "Brand Campaign Video",
-      alt: "Portfolio Video 1",
-    },
-    {
-      type: "image",
-      src: "/images/portofolio/porto-2.png",
-      title: "Creative Content Design",
-      alt: "Portfolio 2",
-    },
-    {
-      type: "video",
-      src: "/images/portofolio/vidio-porto.mp4",
-      title: "Reels Marketing Video",
-      alt: "Portfolio Video 2",
-    },
-    {
-      type: "image",
-      src: "/images/portofolio/porto-3.png",
-      title: "Digital Marketing Visuals",
-      alt: "Portfolio 3",
-    },
-    {
-      type: "image",
-      src: "/images/portofolio/porto-1.png",
-      title: "Brand Identity Project 2",
-      alt: "Portfolio 4",
-    },
-  ];
+  const [portfolioData, setPortfolioData] =
+    useState<PortfolioUiItem[]>(fallbackPortfolioData);
 
   const itemsPerPage = 3;
   const [page, setPage] = useState(0);
 
-  const totalPages = Math.ceil(portfolioData.length / itemsPerPage);
+  const totalPages = useMemo(() => {
+    const tp = Math.ceil(portfolioData.length / itemsPerPage);
+    return tp > 0 ? tp : 1;
+  }, [portfolioData.length]);
+
   const start = page * itemsPerPage;
   const paginatedItems = portfolioData.slice(start, start + itemsPerPage);
 
@@ -63,6 +82,64 @@ const Portofolio = () => {
       once: false,
       easing: "ease-out",
     });
+
+    let alive = true;
+
+    async function loadFeatured() {
+      try {
+        const home = await fetchPublicHome();
+        const featured = Array.isArray((home as any)?.featured_portfolios)
+          ? ((home as any).featured_portfolios as any[])
+          : [];
+
+        if (!alive) return;
+
+        if (featured.length > 0) {
+          // backend sudah orderBy('order'), tapi aman sort juga
+          const sorted = [...featured].sort(
+            (a, b) => Number(a?.order ?? 0) - Number(b?.order ?? 0)
+          );
+
+          const mapped: PortfolioUiItem[] = sorted
+            .map((p) => {
+              const mediaArr = Array.isArray(p?.media) ? p.media : [];
+              const first = mediaArr[0];
+
+              // only allow image/video for this section
+              const mType = String(first?.type || "").toLowerCase();
+              if (mType !== "image" && mType !== "video") return null;
+
+              const rawPath = String(first?.path || "");
+              const abs = rawPath ? backendFileUrl(rawPath) : "";
+
+              if (!abs) return null;
+
+              return {
+                type: mType as "image" | "video",
+                src: abs,
+                title: String(p?.title || "Portfolio"),
+                alt: String(p?.title || "Portfolio"),
+                slug: String(p?.slug || ""),
+              } as PortfolioUiItem;
+            })
+            .filter(Boolean) as PortfolioUiItem[];
+
+          if (mapped.length > 0) {
+            setPortfolioData(mapped);
+            setPage(0);
+            setModalItem(null);
+          }
+        }
+      } catch {
+        // fallback tetap dipakai
+      }
+    }
+
+    loadFeatured();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -82,6 +159,7 @@ const Portofolio = () => {
       handlePageChange((page + 1) % totalPages);
     }, 8000);
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, totalPages]);
 
   return (
@@ -96,7 +174,6 @@ const Portofolio = () => {
 
         <div className="container relative z-10">
           <div className="grid md:grid-cols-2 grid-cols-1 gap-10">
-
             {/* LEFT TEXT */}
             <div data-aos="fade-up">
               <h2 className="text-white max-w-446">OUR PORTFOLIO</h2>
@@ -115,8 +192,9 @@ const Portofolio = () => {
                 key={`${page}-${item.src}-${index}`}
                 data-aos="fade-up"
                 data-aos-delay={`${(index + 1) * 160}`}
-                className={`transition-all duration-500 ease-out ${animating ? "opacity-0 translate-y-2" : "opacity-100"
-                  } ${index === 1 ? "xl:-mt-44 relative" : ""}`}
+                className={`transition-all duration-500 ease-out ${
+                  animating ? "opacity-0 translate-y-2" : "opacity-100"
+                } ${index === 1 ? "xl:-mt-44 relative" : ""}`}
               >
                 <div
                   className="
@@ -130,17 +208,18 @@ const Portofolio = () => {
                   {/* IMAGE / VIDEO */}
                   {item.type === "image" ? (
                     <Image
-                      src={getImgPath(item.src)}
+                      src={item.src.startsWith("http") ? item.src : getImgPath(item.src)}
                       alt={item.alt}
                       width={0}
                       height={0}
                       layout="responsive"
                       sizes="100vh"
                       className="group-hover:scale-[1.04] transition-all duration-500 ease-out"
+                      unoptimized
                     />
                   ) : (
                     <video
-                      src={getImgPath(item.src)}
+                      src={item.src.startsWith("http") ? item.src : getImgPath(item.src)}
                       muted
                       loop
                       playsInline
@@ -183,8 +262,9 @@ const Portofolio = () => {
               <button
                 key={i}
                 onClick={() => handlePageChange(i)}
-                className={`w-3 h-3 rounded-full transition-all ${i === page ? "bg-red-900" : "bg-gray-500"
-                  }`}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  i === page ? "bg-red-900" : "bg-gray-500"
+                }`}
               />
             ))}
           </div>
@@ -207,7 +287,7 @@ const Portofolio = () => {
           className="fixed inset-0 bg-[#161616]/70 backdrop-blur-sm z-[999] flex items-center justify-center p-6"
           onClick={() => setModalItem(null)}
         >
-          <div className="relative max-w-3xl w-full">
+          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
             <button
               className="absolute -top-10 right-0 text-white text-3xl"
               onClick={() => setModalItem(null)}
@@ -217,15 +297,16 @@ const Portofolio = () => {
 
             {modalItem.type === "image" ? (
               <Image
-                src={getImgPath(modalItem.src)}
+                src={modalItem.src.startsWith("http") ? modalItem.src : getImgPath(modalItem.src)}
                 alt="Preview"
                 width={1200}
                 height={800}
                 className="rounded-xl shadow-2xl"
+                unoptimized
               />
             ) : (
               <video
-                src={getImgPath(modalItem.src)}
+                src={modalItem.src.startsWith("http") ? modalItem.src : getImgPath(modalItem.src)}
                 controls
                 autoPlay
                 className="w-full rounded-xl shadow-2xl"

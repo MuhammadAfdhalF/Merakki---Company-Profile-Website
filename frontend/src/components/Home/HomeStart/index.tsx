@@ -1,23 +1,66 @@
+// src/components/Home/HomeStart/index.tsx
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { fetchPublicHome, getHeroSlideUrls } from "@/lib/publicApi";
 
-const slides = [
+const FALLBACK_SLIDES = [
   "/images/hero/home.jpg",
   "/images/hero/home_2.jpg",
   "/images/hero/home_3.jpg",
 ];
 
 export default function HeroSlider() {
+  const [slides, setSlides] = useState<string[]>(FALLBACK_SLIDES);
   const [current, setCurrent] = useState(0);
   const [animKey, setAnimKey] = useState(0); // re-trigger anim tiap slide
 
+  // Load slides from API (fallback tetap dipakai kalau gagal)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
+    let alive = true;
+
+    async function load() {
+      try {
+        const home = await fetchPublicHome();
+        const heroSlides = getHeroSlideUrls(home);
+
+        if (!alive) return;
+
+        if (heroSlides.length > 0) {
+          setSlides(heroSlides);
+          setCurrent(0); // aman kalau jumlah slide berubah
+        }
+      } catch {
+        // diamkan: tetap fallback
+      }
+    }
+
+    load();
+    return () => {
+      alive = false;
+    };
   }, []);
+
+  // Auto-rotate: ikut panjang slides terbaru
+  useEffect(() => {
+    if (!slides || slides.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrent((prev) => {
+        const len = slides.length;
+        if (len <= 1) return 0;
+        return (prev + 1) % len;
+      });
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  // Clamp current kalau slides berubah jadi lebih sedikit
+  useEffect(() => {
+    if (current >= slides.length) setCurrent(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slides.length]);
 
   useEffect(() => {
     setAnimKey((k) => k + 1);
